@@ -1,8 +1,7 @@
 import Lean
 import I18n.EnvExtension
 
-open Lean
-open Elab.Term
+open Lean Elab Term
 
 
 /-!
@@ -22,7 +21,7 @@ def extractKey (interpStr : TSyntax interpolatedStrKind) :
     -- elem is either a string literal or ...
     match elem.isInterpolatedStrLit? with
     | none => match elem with
-      | .ident _ rawVal val _ =>
+      | .ident _ _ val _ =>
         -- If it is an `ident`, we want it's name
         key := key ++ "{" ++ val.toString ++ "}"
       | _ =>
@@ -36,25 +35,37 @@ def extractKey (interpStr : TSyntax interpolatedStrKind) :
 syntax:max "t!" interpolatedStr(term) : term
 syntax:max "mt!" interpolatedStr(term) : term
 
-open Elab in
 elab_rules : term
   | `(t! $interpStr) => do
-    let key : String ← extractKey interpStr
-    modifyEnv (untranslatedKeysExt.addEntry · key)
+    let env ← getEnv
+    let entry : POEntry := {
+      msgId := ← extractKey interpStr
+      ref := some [(env.mainModule.toString, none)]
+      flags := some ["lean-format"]
+    }
+    modifyEnv (untranslatedKeysExt.addEntry · entry)
     -- TODO: replace the string with its translation
     Term.elabTerm (← `(s! $interpStr)) none
 
-open Elab in
 elab_rules : term
   | `(mt! $interpStr) => do
-    let key : String ← extractKey interpStr
-    modifyEnv (untranslatedKeysExt.addEntry · key)
+    let env ← getEnv
+    let entry : POEntry := {
+      msgId := ← extractKey interpStr
+      ref := some [(env.mainModule.toString, none)]
+      flags := some ["lean-format"]
+    }
+    modifyEnv (untranslatedKeysExt.addEntry · entry)
     -- TODO: replace the string with its translation
     Term.elabTerm (← `(m! $interpStr)) none
 
-
 def _root_.String.translate [Monad m] [MonadEnv m] (s : String) : m String := do
-  modifyEnv (untranslatedKeysExt.addEntry · s)
+  let env ← getEnv
+  let entry : POEntry := {
+    msgId := s
+    ref := some [(env.mainModule.toString, none)]
+  }
+  modifyEnv (untranslatedKeysExt.addEntry · entry)
   return s
 
 

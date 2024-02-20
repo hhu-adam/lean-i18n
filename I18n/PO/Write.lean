@@ -1,4 +1,5 @@
 import I18n.PO.Definition
+import I18n.Translate
 
 namespace I18n
 
@@ -41,8 +42,15 @@ def POEntry.toString (e : POEntry) : String := Id.run do
   if let some msgCtx := e.msgCtxt then
     out := out.append <| s!"msgctxt \"{msgCtx}\"\n"
 
-  out := out.append <| "msgid \"" ++ ("\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\"\n"
-  out := out.append <| "msgstr \"" ++ ("\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\"\n"
+  let msgId := "\"" ++ ("\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
+  out := out.append <| "msgid " ++ msgId ++ "\n"
+
+  if let some msgStr := e.msgStr then
+    out := out.append <| "msgstr \"" ++ ("\"\n\"".intercalate <| msgStr.split (· == '\n')) ++ "\"\n"
+  else
+    -- if `msgStr` is not provided, it should be identical to `msgId`
+    out := out.append <| "msgstr " ++ msgId  ++ "\n"
+
 
   return out
 
@@ -64,19 +72,18 @@ open Lean
 open Lean Meta Elab Command System
 
 /-- Write all collected untranslated strings into a PO file which can be found
-at `.lake/i18n/` -/
+at `.i18n/` -/
 def createPOTemplate (fileName : String) : CommandElabM Unit := do
-  let path := (← IO.currentDir) / ".lake" / "i18n"
+  let path := (← IO.currentDir) / ".i18n"
 
   IO.FS.createDirAll path
 
   let keys := (untranslatedKeysExt.getState (← getEnv))
 
   let poFile : POFile := {
-    entries := keys.map (fun k =>
-      {msgId := k, msgStr := k} )
+    entries := keys
   }
 
   poFile.save (path / fileName)
 
-  logInfo s!"PO-file created at {path}."
+  logInfo s!"PO-file created at {path / fileName}"

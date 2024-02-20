@@ -1,5 +1,4 @@
 import Lean
-import I18n.Translate
 
 open Lean
 
@@ -26,7 +25,7 @@ structure POEntry where
   be used anywhere else.
   -/
   msgId : String
-  msgStr : String
+  msgStr : Option String := none
   /-- translator comments (`#`) -/
   comment : Option String := none
   /-- extracted comments  (`#.`) -/
