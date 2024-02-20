@@ -14,50 +14,62 @@ def POEntry.toString (e : POEntry) : String := Id.run do
   let mut out := ""
 
   if let some comment := e.comment then
-    out := out.append <| "".intercalate <| comment.trim.split (· == '\n') |>.map (s!"#  {·}\n")
+    out := out.append <| "".intercalate <| comment.trim.split (· == '\n') |>.map (s!"\n#  {·}")
 
   if let some extrComment := e.extrComment then
-    out := out.append <| "".intercalate <| extrComment.trim.split (· == '\n') |>.map (s!"#. {·}\n")
+    out := out.append <| "".intercalate <| extrComment.trim.split (· == '\n') |>.map (s!"\n#. {·}")
 
   if let some ref := e.ref then
     -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is
     -- different to what's implemented here.
     let formattedRefs := ref.map (fun (file, line?) => match line? with
-      | none => s!"#: {escapeRef file}\n"
-      | some line => s!"#: {escapeRef file}:{line}\n" )
+      | none => s!"\n#: {escapeRef file}"
+      | some line => s!"\n#: {escapeRef file}:{line}" )
     out := out.append <| "".intercalate formattedRefs
 
   if let some flags := e.flags then
-    out := out.append <| "#, " ++ ", ".intercalate flags ++ "\n"
+    out := out.append <| "\n#, " ++ ", ".intercalate flags
 
   if let some prevMsgCtxt := e.prevMsgCtxt then
-    out := out.append <| s!"#| msgctxt \"{prevMsgCtxt}\"\n"
+    out := out.append <| s!"\n#| msgctxt \"{prevMsgCtxt}\""
 
   if let some prevMsgId := e.prevMsgId then
       out := out.append <|
-        "#| msgid \"" ++
-        ("\"\n#| \"".intercalate <| prevMsgId.split (· == '\n')) ++
-        "\"\n"
+        "\n#| msgid \"" ++
+        ("\"\n#| \"".intercalate <| prevMsgId.split (· == '\n')) ++ "\""
 
   if let some msgCtx := e.msgCtxt then
-    out := out.append <| s!"msgctxt \"{msgCtx}\"\n"
+    out := out.append <| s!"\nmsgctxt \"{msgCtx}\""
 
   let msgId := "\"" ++ ("\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
-  out := out.append <| "msgid " ++ msgId ++ "\n"
+  out := out.append <| "\nmsgid " ++ msgId
 
-  if let some msgStr := e.msgStr then
-    out := out.append <| "msgstr \"" ++ ("\"\n\"".intercalate <| msgStr.split (· == '\n')) ++ "\"\n"
-  else
-    -- if `msgStr` is not provided, it should be identical to `msgId`
-    out := out.append <| "msgstr " ++ msgId  ++ "\n"
+  out := out.append <| "\nmsgstr \"" ++ ("\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\""
 
 
-  return out
+  return out.trim
 
 instance : ToString POEntry := ⟨POEntry.toString⟩
 
+def POHeaderEntry.toPOEntry (header : POHeaderEntry): POEntry := Id.run do
+  let mut msgStr := ""
+  msgStr := msgStr.append s!"\nProject-Id-Version: {header.ProjectIdVersion}"
+  msgStr := msgStr.append s!"\nReport-Msgid-Bugs-To: {header.ReportMsgidBugsTo}"
+  msgStr := msgStr.append s!"\nPOT-Creation-Date: {header.POTCreationDate}"
+  if let some revisionDate := header.PORevisionDate then
+    msgStr := msgStr.append s!"\nPO-Revision-Date: {revisionDate}"
+  msgStr := msgStr.append s!"\nLast-Translator: {header.LastTranslator}"
+  msgStr := msgStr.append s!"\nLanguage-Team: {header.LanguageTeam}"
+  msgStr := msgStr.append s!"\nLanguage: {header.Language}"
+  msgStr := msgStr.append s!"\nContent-Type: {header.ContentType}"
+  msgStr := msgStr.append s!"\nContent-Transfer-Encoding: {header.ContentTransferEncoding}"
+  if let some pluralForms := header.PluralForms then
+    msgStr := msgStr.append s!"\nPlural-Forms: {pluralForms}"
+
+  return {msgId := "", msgStr := msgStr}
+
 def POFile.toString (f : POFile) : String :=
-  "\n".intercalate <| (#[f.header] ++ f.entries).map (fun e => s!"{e}") |>.toList
+  ("\n\n".intercalate (([f.header.toPOEntry] ++ f.entries.toList).map (fun e => s!"{e}"))) ++ "\n"
 
 instance : ToString POFile := ⟨POFile.toString⟩
 
@@ -74,16 +86,30 @@ open Lean Meta Elab Command System
 /-- Write all collected untranslated strings into a PO file which can be found
 at `.i18n/` -/
 def createPOTemplate (fileName : String) : CommandElabM Unit := do
-  let path := (← IO.currentDir) / ".i18n"
-
+  let projectDir ← IO.currentDir
+  let path := projectDir / ".i18n"
   IO.FS.createDirAll path
 
   let keys := (untranslatedKeysExt.getState (← getEnv))
 
+  -- only for the PO header.
+  let projectName := match projectDir.fileName with
+  | none => "[PROJECT]"
+  | some s => s
+
   let poFile : POFile := {
+    header := {
+      ProjectIdVersion := s!"{projectName} v{Lean.versionString}"
+      ReportMsgidBugsTo := ""
+      POTCreationDate := ""
+      LastTranslator := ""
+      Language := ""
+    }
     entries := keys
   }
 
   poFile.save (path / fileName)
 
   logInfo s!"PO-file created at {path / fileName}"
+
+#check System.SearchPath
