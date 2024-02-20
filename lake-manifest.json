@@ -9,6 +9,12 @@
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",
    "inherited": false,
+   "configFile": "lakefile.lean"},
+  {"type": "path",
+   "name": "time",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": "./time",
    "configFile": "lakefile.lean"}],
  "name": "i18n",
  "lakeDir": ".lake"}

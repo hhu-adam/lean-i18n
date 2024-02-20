@@ -1,5 +1,6 @@
 import I18n.PO.Definition
 import I18n.Translate
+import Time
 
 namespace I18n
 
@@ -101,7 +102,7 @@ def createPOTemplate (fileName : String) : CommandElabM Unit := do
     header := {
       ProjectIdVersion := s!"{projectName} v{Lean.versionString}"
       ReportMsgidBugsTo := ""
-      POTCreationDate := ""
+      POTCreationDate := ← Time.getLocalTime
       LastTranslator := ""
       Language := ""
     }

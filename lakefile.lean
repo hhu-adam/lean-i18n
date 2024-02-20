@@ -5,6 +5,7 @@ package i18n where
   -- add package configuration options here
 
 require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
+require time from "time"
 
 @[default_target]
 lean_lib I18n where
