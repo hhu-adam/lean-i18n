@@ -9,3 +9,10 @@ Tiny package which interacts with the `C++` implementation concerning time.
 ## Usage
 
 Require the package in your `lakefile.lean` and add `import Time` in your Lean file.
+
+## Note
+There is a library at
+
+https://github.com/T-Brick/DateTime
+
+which would replace this.

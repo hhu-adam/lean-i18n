@@ -2,6 +2,27 @@ import I18n.PO.Definition
 import I18n.PO.Read
 import I18n.PO.Write
 
+namespace I18n
+
+-- def test (s : String) := match POFile.parse s with
+-- | .ok file => file.toString
+-- | .error err => s!"ERROR: {err}"
+
+-- #eval test "#  test\n"
+
+-- #eval test "#  hallooo\n#. test\n#. more test\n#| msgid \"old msgid is nothing\"\n msgid \"text zum übersetzen\"\nmsgstr \"translated text\"\n\n#  hallooo\n#. test\n#. more test\n#| msgid \"oold msgid is nothing\"\n msgid \"text zum üübersetzen\"\nmsgstr \"translated text\"\n"
+
+
+def test2 : IO Unit := do
+  match ← POFile.load "test/example.po" with
+  | .error err =>
+    dbg_trace s!"ERROR: {err}"
+  | .ok file =>
+    file.save "test/example-out.po"
+    dbg_trace s!"🎉: {file}"
+
+
+#eval test2
 
 -- def POEntry.ofString (s : String) : POEntry := Id.run do
 --   return {

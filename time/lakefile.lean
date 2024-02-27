@@ -1,9 +1,14 @@
 import Lake
 open Lake DSL
 
+-- Using this assumes that each dependency has a tag of the form `v4.X.0`.
+def leanVersion : String := s!"v{Lean.versionString}"
+
 package time where
   -- add package configuration options here
   precompileModules := true
+
+require importGraph from git "https://github.com/leanprover-community/import-graph" @ leanVersion
 
 @[default_target]
 lean_lib Time where

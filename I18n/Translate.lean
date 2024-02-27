@@ -1,8 +1,10 @@
 import Lean
 import I18n.EnvExtension
+import I18n.PO.Read
 
 open Lean Elab Term
 
+Language fr
 
 /-!
 Defines `t!"yada yada"` which works like `s!` but tries to translate the provided
@@ -13,7 +15,7 @@ string frist.
 namespace I18n
 
 /-- Turn an interpolated string back into a string with containing `{}`. -/
-def extractKey (interpStr : TSyntax interpolatedStrKind) :
+def interpolatedStrKind.toString (interpStr : TSyntax interpolatedStrKind) :
     TermElabM String := do
 
   let mut key := ""
@@ -21,9 +23,9 @@ def extractKey (interpStr : TSyntax interpolatedStrKind) :
     -- elem is either a string literal or ...
     match elem.isInterpolatedStrLit? with
     | none => match elem with
-      | .ident _ _ val _ =>
+      | .ident _ rawVal _ _ =>
         -- If it is an `ident`, we want it's name
-        key := key ++ "{" ++ val.toString ++ "}"
+        key := key ++ "{" ++ rawVal.toString ++ "}"
       | _ =>
         -- TODO: we don't support anything but `ident`s currently
         key := key ++ "{!TODO!}"
@@ -33,40 +35,59 @@ def extractKey (interpStr : TSyntax interpolatedStrKind) :
 
 /-- A translated string. -/
 syntax:max "t!" interpolatedStr(term) : term
+
+/-- A translated string as message data. -/
 syntax:max "mt!" interpolatedStr(term) : term
 
-elab_rules : term
-  | `(t! $interpStr) => do
-    let env ← getEnv
-    let entry : POEntry := {
-      msgId := ← extractKey interpStr
-      ref := some [(env.mainModule.toString, none)]
-      flags := some ["lean-format"]
-    }
-    modifyEnv (untranslatedKeysExt.addEntry · entry)
-    -- TODO: replace the string with its translation
-    Term.elabTerm (← `(s! $interpStr)) none
-
-elab_rules : term
-  | `(mt! $interpStr) => do
-    let env ← getEnv
-    let entry : POEntry := {
-      msgId := ← extractKey interpStr
-      ref := some [(env.mainModule.toString, none)]
-      flags := some ["lean-format"]
-    }
-    modifyEnv (untranslatedKeysExt.addEntry · entry)
-    -- TODO: replace the string with its translation
-    Term.elabTerm (← `(m! $interpStr)) none
-
-def _root_.String.translate [Monad m] [MonadEnv m] (s : String) : m String := do
+/-- Look up a translation and return the translated string. Returns the original string
+on failure. -/
+def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
+    [MonadOptions m] (s : String) : m String := do
   let env ← getEnv
   let entry : POEntry := {
     msgId := s
-    ref := some [(env.mainModule.toString, none)]
-  }
+    ref := some [(env.mainModule.toString, none)] }
   modifyEnv (untranslatedKeysExt.addEntry · entry)
-  return s
+  let langState ← getLanguageState
+  let sTranslated ← if langState.lang == langState.sourceLang then
+    pure s
+  else
+    match (← getTranslations).find? s with
+    | none =>
+      -- Print a warning that the translation has not been found
+      --let langState ← getLanguageState
+      --if langState.lang != langState.sourceLang then
+      logWarning s!"No translation ({langState.lang}) found for: {s}"
+      pure s
+    | some tr =>
+      pure tr
+  return sTranslated
+
+def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
+    : TermElabM <| TSyntax `interpolatedStrKind := do
+  let env ← getEnv
+  let key ← interpolatedStrKind.toString interpStr
+  let langState ← getLanguageState
+  let newInterpStr ← if langState.lang == langState.sourceLang then
+    pure interpStr
+  else
+    -- Search for a translation
+    let tKey : String ← key.translate
+    -- Parse the translation
+    let newInterpStr ← match Parser.String.parseAsInterpolatedStr env tKey with
+      | .ok newInterpStr => pure newInterpStr
+      | .error err =>
+        logError s!"Could not parse translated string: {err}\n\ninput: {key}"
+        pure interpStr
+  return newInterpStr
+
+elab_rules : term
+  | `(t! $interpStr) =>  withFreshMacroScope do
+    let newInterpStr ← interpolatedStrKind.translate interpStr
+    Term.elabTerm (← `(s! $newInterpStr)) none
+  | `(mt! $interpStr) =>  withFreshMacroScope do
+    let newInterpStr ← interpolatedStrKind.translate interpStr
+    Term.elabTerm (← `(m! $newInterpStr)) none
 
 
 
@@ -130,9 +151,9 @@ def _root_.String.translate [Monad m] [MonadEnv m] (s : String) : m String := do
 
 
 
--- variable (x : Nat)
+def x := 4
 
--- #eval t!"The second \{ number: {x}. Isn't that fascinating"
+#eval mt!"The second \{ number: {x}. Isn't that fascinating" |>.toString
 
 -- -- Lean
 -- def expandInterpolatedStrChunks

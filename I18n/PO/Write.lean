@@ -37,15 +37,15 @@ def POEntry.toString (e : POEntry) : String := Id.run do
   if let some prevMsgId := e.prevMsgId then
       out := out.append <|
         "\n#| msgid \"" ++
-        ("\"\n#| \"".intercalate <| prevMsgId.split (· == '\n')) ++ "\""
+        ("\\n\"\n#| \"".intercalate <| prevMsgId.split (· == '\n')) ++ "\""
 
   if let some msgCtx := e.msgCtxt then
     out := out.append <| s!"\nmsgctxt \"{msgCtx}\""
 
-  let msgId := "\"" ++ ("\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
+  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
   out := out.append <| "\nmsgid " ++ msgId
 
-  out := out.append <| "\nmsgstr \"" ++ ("\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\""
+  out := out.append <| "\nmsgstr \"" ++ ("\\n\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\""
 
 
   return out.trim
@@ -54,17 +54,17 @@ instance : ToString POEntry := ⟨POEntry.toString⟩
 
 def POHeaderEntry.toPOEntry (header : POHeaderEntry): POEntry := Id.run do
   let mut msgStr := ""
-  msgStr := msgStr.append s!"\nProject-Id-Version: {header.ProjectIdVersion}"
-  msgStr := msgStr.append s!"\nReport-Msgid-Bugs-To: {header.ReportMsgidBugsTo}"
-  msgStr := msgStr.append s!"\nPOT-Creation-Date: {header.POTCreationDate}"
-  if let some revisionDate := header.PORevisionDate then
+  msgStr := msgStr.append s!"\nProject-Id-Version: {header.projectIdVersion}"
+  msgStr := msgStr.append s!"\nReport-Msgid-Bugs-To: {header.reportMsgidBugsTo}"
+  msgStr := msgStr.append s!"\nPOT-Creation-Date: {header.potCreationDate}"
+  if let some revisionDate := header.poRevisionDate then
     msgStr := msgStr.append s!"\nPO-Revision-Date: {revisionDate}"
-  msgStr := msgStr.append s!"\nLast-Translator: {header.LastTranslator}"
-  msgStr := msgStr.append s!"\nLanguage-Team: {header.LanguageTeam}"
-  msgStr := msgStr.append s!"\nLanguage: {header.Language}"
-  msgStr := msgStr.append s!"\nContent-Type: {header.ContentType}"
-  msgStr := msgStr.append s!"\nContent-Transfer-Encoding: {header.ContentTransferEncoding}"
-  if let some pluralForms := header.PluralForms then
+  msgStr := msgStr.append s!"\nLast-Translator: {header.lastTranslator}"
+  msgStr := msgStr.append s!"\nLanguage-Team: {header.languageTeam}"
+  msgStr := msgStr.append s!"\nLanguage: {header.language}"
+  msgStr := msgStr.append s!"\nContent-Type: {header.contentType}"
+  msgStr := msgStr.append s!"\nContent-Transfer-Encoding: {header.contentTransferEncoding}"
+  if let some pluralForms := header.pluralForms then
     msgStr := msgStr.append s!"\nPlural-Forms: {pluralForms}"
 
   return {msgId := "", msgStr := msgStr}
@@ -85,13 +85,17 @@ open Lean
 open Lean Meta Elab Command System
 
 /-- Write all collected untranslated strings into a PO file which can be found
-at `.i18n/` -/
-def createPOTemplate (fileName : String) : CommandElabM Unit := do
+at `.i18n/[projectName].pot` -/
+def createPOTemplate (projectName : String) : CommandElabM Unit := do
+  let fileName := s!"{projectName}.pot"
+
   let projectDir ← IO.currentDir
   let path := projectDir / ".i18n"
   IO.FS.createDirAll path
 
-  let keys := (untranslatedKeysExt.getState (← getEnv))
+  let keys := untranslatedKeysExt.getState (← getEnv)
+
+  let translationState ← getLanguageState
 
   -- only for the PO header.
   let projectName := match projectDir.fileName with
@@ -100,11 +104,10 @@ def createPOTemplate (fileName : String) : CommandElabM Unit := do
 
   let poFile : POFile := {
     header := {
-      ProjectIdVersion := s!"{projectName} v{Lean.versionString}"
-      ReportMsgidBugsTo := ""
-      POTCreationDate := ← Time.getLocalTime
-      LastTranslator := ""
-      Language := ""
+      projectIdVersion := s!"{projectName} v{Lean.versionString}"
+      reportMsgidBugsTo := ""
+      potCreationDate := ← Time.getLocalTime
+      language := translationState.sourceLang.toString
     }
     entries := keys
   }
@@ -113,4 +116,6 @@ def createPOTemplate (fileName : String) : CommandElabM Unit := do
 
   logInfo s!"PO-file created at {path / fileName}"
 
-#check System.SearchPath
+-- debugging only
+elab "Translate" projectName:str : command => do
+  createPOTemplate projectName.getString

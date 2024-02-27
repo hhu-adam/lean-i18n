@@ -62,16 +62,16 @@ structure POEntry where
   -- msgStrPlural : Option <| List String
 
 structure POHeaderEntry where
-  ProjectIdVersion : String
-  ReportMsgidBugsTo : String
-  POTCreationDate : String
-  PORevisionDate : Option String := none
-  LastTranslator : String
-  LanguageTeam : Option String := none
-  Language : String
-  ContentType : String := "text/plain; charset=UTF-8"
-  ContentTransferEncoding : String := "8bit"
-  PluralForms : Option String := none
+  projectIdVersion : String
+  reportMsgidBugsTo : String
+  potCreationDate : String
+  poRevisionDate : Option String := none
+  lastTranslator : String := ""
+  languageTeam : Option String := none
+  language : String
+  contentType : String := "text/plain; charset=UTF-8"
+  contentTransferEncoding : String := "8bit"
+  pluralForms : Option String := none
 
 -- "Project-Id-Version: Lingohub 1.0.1\n"
 -- "Report-Msgid-Bugs-To: support@lingohub.com \n"
@@ -91,10 +91,9 @@ structure POFile where
 
 def POFile.empty : POFile := {
   header := {
-    ProjectIdVersion := ""
-    ReportMsgidBugsTo := ""
-    POTCreationDate := ""
-    LastTranslator := ""
-    Language := ""
+    projectIdVersion := ""
+    reportMsgidBugsTo := ""
+    potCreationDate := ""
+    language := ""
   }
   entries := #[]}
