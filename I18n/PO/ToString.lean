@@ -58,7 +58,7 @@ def toString (e : POEntry) : String := Id.run do
   let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
   let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\""
   out := out.append <| "\nmsgid " ++ msgId
-  out := out.append <| "\nmsgstr \"" ++ msgStr
+  out := out.append <| "\nmsgstr " ++ msgStr
   return out.trim
 
 instance : ToString POEntry := ⟨POEntry.toString⟩
