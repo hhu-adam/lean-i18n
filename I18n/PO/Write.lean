@@ -1,6 +1,7 @@
 import I18n.PO.ToString
 import I18n.Translate
-import DateTime
+import Time
+-- import DateTime
 
 /-! # Create PO-file
 
@@ -35,7 +36,7 @@ def createPOTemplate : CommandElabM Unit := do
     header := {
       projectIdVersion := s!"{projectName} v{Lean.versionString}"
       reportMsgidBugsTo := langConfig.translationContactEmail
-      potCreationDate := (← DateTime.now).extended_format -- Time.getLocalTime
+      potCreationDate := ← Time.getLocalTime -- (← DateTime.now).extended_format
       language := langConfig.sourceLang.toString }
     entries := keys }
   poFile.save (path / fileName)
