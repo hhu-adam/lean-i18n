@@ -16,10 +16,12 @@ structure Language where
   > such as ‘latin’ or ‘cyrillic’.
   -/
   variant : Option Name := none
-deriving BEq
+deriving BEq, Inhabited
 
 namespace Language
 
+/--The string representation of a language can be `en`,
+`de_CH`, or `ar_JO@latin`. -/
 def toString (l : Language) : String :=
   match l.country, l.variant with
     | none, none => s!"{l.lang}"
@@ -28,5 +30,21 @@ def toString (l : Language) : String :=
     | some c, some v => s!"{l.lang}_{c}@{v}"
 
 instance : ToString Language := ⟨Language.toString⟩
+
+@[inherit_doc Language.toString]
+def ofString (s : String) : Language :=
+  match s.split (· = '_') with
+  | [langVariant] =>
+    match langVariant.split (· = '@') with
+    | [lang]          => ⟨lang, none, none⟩
+    | [lang, variant] => ⟨lang, none, variant⟩
+    | _               => panic! s!"Invalid language string: {s}"
+  | [lang, countryVariant] =>
+    match countryVariant.split (· = '@') with
+    | [country]          => ⟨lang, country, none⟩
+    | [country, variant] => ⟨lang, country, variant⟩
+    | _                  => panic! s!"Invalid language string: {s}"
+  | _ =>
+    panic! s!"Invalid language string: {s}"
 
 end Language

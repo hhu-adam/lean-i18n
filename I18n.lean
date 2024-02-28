@@ -1,3 +1,6 @@
--- This module serves as the root of the `Gettext` library.
--- Import modules here that should be built as part of the library.
+import I18n.EnvExtension
+import I18n.InterpolatedStr
+import I18n.Language
 import I18n.PO
+import I18n.Translate
+import I18n.Utils

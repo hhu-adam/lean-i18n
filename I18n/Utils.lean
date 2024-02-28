@@ -1,15 +1,14 @@
-import Lean
+import Lake.Load.Manifest
 
 open Lean
 
 namespace I18n
--- Copied from `import-graph`
-/-- Returns the very first part of a name: for `ImportGraph.Lean.NameMap` it
-returns `ImportGraph`.
--/
-protected
-def Name.getModule (name : Name) (s := "") : Name :=
-  match name with
-    | .anonymous => s
-    | .num _ _ => panic s!"panic in `getModule`: did not expect numerical name: {name}."
-    | .str pre s => I18n.Name.getModule pre s
+
+/-- Read the name of the current package from the lake-manifest. -/
+def getProjectName : CoreM Name := do
+  match (← Lake.Manifest.load? ⟨"lake-manifest.json"⟩) with
+  | none =>
+    logWarning "I18n: Could not read lake-manifest.json!"
+    return `project
+  | some manifest =>
+    return manifest.name

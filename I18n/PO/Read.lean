@@ -1,31 +1,14 @@
 import I18n.PO.Definition
 
+/-! # Parse PO-Files
+
+The main function of this file is `POFile.read`, which uses `Parsec` to
+parse a PO-file and returns a `POFile`.
+-/
+
 open Lean
 
 namespace I18n
-
-namespace Parser
-
-open Parser
-
-/-- Parse a string as an interpolated string.
-
-Modified from `Lean.Parser.runParserCategory`.
- -/
-def String.parseAsInterpolatedStr (env : Environment) (input : String) (fileName := "<input>") :
-    Except String <| TSyntax `interpolatedStrKind :=
-  let input := s!"\"{input}\""
-  let p := interpolatedStrFn <| andthenFn whitespace (categoryParserFnImpl `term)
-  let ictx := mkInputContext input fileName
-  let s := p.run ictx { env, options := {} } (getTokenTable env) (mkParserState input)
-  if s.hasError then
-    Except.error (s.toErrorMsg ictx)
-  else if input.atEnd s.pos then
-    Except.ok ⟨s.stxStack.back⟩
-  else
-    Except.error ((s.mkError "end of input").toErrorMsg ictx)
-
-end Parser
 
 namespace POFile.Parser
 
@@ -248,6 +231,7 @@ partial def parseEntry (acc : Option POEntry := none) : Parsec POEntry := do
   else
     return acc
 
+/-- Core for `I18n.POFile.Parser.parseFile` -/
 partial def parseFileCore (entries : Array POEntry := #[]) (header : Option POHeaderEntry := none) :
     Parsec POFile := do
   ws
@@ -274,6 +258,7 @@ partial def parseFileCore (entries : Array POEntry := #[]) (header : Option POHe
         language          := "" }
     return {entries := entries, header := header}
 
+/-- Parsec parser for PO files. -/
 def parseFile : Parsec POFile := do
   ws
   let res ← parseFileCore
@@ -282,6 +267,7 @@ def parseFile : Parsec POFile := do
 
 end Parser
 
+/-- Parse the content of a PO file. -/
 def parse (s : String) : Except String POFile :=
   match POFile.Parser.parseFile s.mkIterator with
   | Parsec.ParseResult.success _ res => Except.ok res
@@ -289,16 +275,15 @@ def parse (s : String) : Except String POFile :=
 
 end POFile
 
-
 open System
-open IO.FS
 
-def POFile.load (path : FilePath) : IO <| Except String POFile := do
+/-- Read a PO file and parse it. -/
+def POFile.read (path : FilePath) : IO <| POFile := do
   if ¬ (← FilePath.pathExists path) then
     panic "File does not exist!"
-
-  let content ← readFile path
-
-  return POFile.parse content
-
-#check IO.FS.readFile
+  let content ← IO.FS.readFile path
+  match POFile.parse content with
+  | .ok f =>
+    return f
+  | .error err =>
+    panic! s!"Failed to parse PO file: {err}"
