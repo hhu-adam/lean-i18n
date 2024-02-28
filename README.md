@@ -7,7 +7,7 @@ This package provides internationalisation ("i18n") for Lean projects.
 Add the following line to your projects `lakefile.lean`:
 
 ```lean
-require i18n from git "TODO-ADD-CORRECT-URL" @ "main"
+require i18n from git "https://github.com/hhu-adam/lean-i18n" @ "main"
 ```
 
 There are three options to mark strings for translation:
