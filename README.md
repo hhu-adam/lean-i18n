@@ -19,7 +19,7 @@ There are three options to mark strings for translation:
 Marking strings with these three options will collect untranslated strings throughout
 your project. To save them all to a PO-template file, you can call `CreatePOT`, e.g. in your
 project's main file.
-(Alternatively you can call `createPOTemplate` at any suitable point in your (meta-) code.)
+(Alternatively you can call `I18n.createPOTemplate` at any suitable point in your (meta-) code.)
 
 Both will create a file `.i18n/[yourProject].pot` which you can translate using any
 "PO Editor". The translated files should be saved as `.i18n/[yourProject]-[lang].po`
