@@ -16,17 +16,17 @@ There are three options to mark strings for translation:
 * `mt!"…"`: works like `m!"…"`.
 * `String.translate`: to translate a string (meta code)
 
-This will collect all untranslated strings in your project. To save all collected
-untranslated strings into a PO-template file, you can call `CreatePOT` (e.g. in your
-project's main file).
-
-Alternatively you can call `createPOTemplate` at any point in your (meta-) code.
+Marking strings with these three options will collect untranslated strings throughout
+your project. To save them all to a PO-template file, you can call `CreatePOT`, e.g. in your
+project's main file.
+(Alternatively you can call `createPOTemplate` at any suitable point in your (meta-) code.)
 
 Both will create a file `.i18n/[yourProject].pot` which you can translate using any
 "PO Editor". The translated files should be saved as `.i18n/[yourProject]-[lang].po`
 
 Once you have a translation present, you can use `Language` to translate everything
-in the current live: Set `Language fr` at the top of your lean document.
+in the current document: e.g. set `Language fr` at the top of your lean document and you should get
+your French translation of strings printed.
 
 ## PO Files
 
@@ -36,16 +36,15 @@ in the [GNU gettext manual](https://www.gnu.org/software/gettext/manual/html_nod
 You can use existing "PO editors" to manage the translations. For example, they help with
 merging an updated `.pot` file.
 
-If your software produces a Po-file which can't be parsed, please report a Bug here with a
-sample PO-file!
-
+If your thirdparty software produces a PO-file which can't be parsed (correctly) in Lean,
+please create a bug report here with a sample PO-file!
 
 ## Contribution
 
 This is merely a prototype. Contributions are very welcome!
 
-If you have a usage case for translations which this package doesn't cover, please open an
-issue explaining how you would want to use translations in Lean!
+If you have a usage case for translations in Lean which isn't covered by this package,
+please open an issue explaining how you would want to use translations in Lean!
 
 ## Credits
 
