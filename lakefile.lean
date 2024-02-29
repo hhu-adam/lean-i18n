@@ -26,8 +26,9 @@ lean_lib I18n where
 --   -- Remove this line if you do not need such functionality.
 --   supportInterpreter := false
 
+-- temporary replacement for `datetime` package.
 lean_lib Time where
-  -- add library configuration options here
+  srcDir := "." / "time"
 
 target time.o pkg : FilePath := do
   let oFile := pkg.buildDir / "c" / "time.o"
