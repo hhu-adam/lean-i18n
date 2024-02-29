@@ -5,7 +5,6 @@ package i18n where
   -- add package configuration options here
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
-require time from "time"
 
 @[default_target]
 lean_lib I18n where
@@ -26,3 +25,17 @@ lean_lib I18n where
 --   -- `runFrontend`) at the expense of increased binary size on Linux.
 --   -- Remove this line if you do not need such functionality.
 --   supportInterpreter := false
+
+lean_lib Time where
+  -- add library configuration options here
+
+target time.o pkg : FilePath := do
+  let oFile := pkg.buildDir / "c" / "time.o"
+  let srcJob ← inputFile <| pkg.dir / "time" / "c" / "time.cpp"
+  let weakArgs := #["-I", (← getLeanIncludeDir).toString]
+  buildO "time.cpp" oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
+
+extern_lib libLeanTime pkg := do
+  let name := nameToStaticLib "leanTime"
+  let timeO ← fetch <| pkg.target ``time.o
+  buildStaticLib (pkg.nativeLibDir / name) #[timeO]

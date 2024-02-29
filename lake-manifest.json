@@ -1,11 +1,5 @@
 {"version": 7,
  "packagesDir": ".lake/packages",
- "packages":
- [{"type": "path",
-   "name": "time",
-   "manifestFile": "lake-manifest.json",
-   "inherited": false,
-   "dir": "./time",
-   "configFile": "lakefile.lean"}],
+ "packages": [],
  "name": "i18n",
  "lakeDir": ".lake"}
