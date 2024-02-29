@@ -29,6 +29,7 @@ lean_lib I18n where
 -- temporary replacement for `datetime` package.
 lean_lib Time where
   srcDir := "." / "time"
+  precompileModules := true
 
 target time.o pkg : FilePath := do
   let oFile := pkg.buildDir / "c" / "time.o"
