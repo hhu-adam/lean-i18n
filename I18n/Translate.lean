@@ -40,18 +40,27 @@ elab "Language" lang:ident : command => do
   Elab.Command.liftCoreM <| loadTranslations
 
 /--
+Add a string to the set of untranslated strings
+-/
+def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
+    [MonadOptions m] (s : String) : m Unit := do
+  let env ← getEnv
+  let entry : POEntry := {
+    msgId := s
+    ref := some [(env.mainModule.toString, none)] }
+  modifyEnv (untranslatedKeysExt.addEntry · entry)
+
+
+/--
 Add the string as untranslated, look up a translation
 and return the translated string.
 Returns the original string on failure.
 -/
 def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m String := do
-  let env ← getEnv
+  s.markForTranslation
+
   let langConfig : LanguageState ← getLanguageState
-  let entry : POEntry := {
-    msgId := s
-    ref := some [(env.mainModule.toString, none)] }
-  modifyEnv (untranslatedKeysExt.addEntry · entry)
   let sTranslated ← if langConfig.lang == langConfig.sourceLang then
     pure s
   else
@@ -74,6 +83,9 @@ def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
   let langState ← getLanguageState
   let key ← interpolatedStrKind.toString interpStr
   let newInterpStr ← if langState.lang == langState.sourceLang then
+    -- We need to add the string as untranslated,
+    -- but we can just return the existing string.
+    key.markForTranslation
     pure interpStr
   else
     -- Search for a translation
