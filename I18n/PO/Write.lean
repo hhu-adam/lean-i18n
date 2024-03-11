@@ -6,7 +6,7 @@ import Time
 /-! # Create PO-file
 
 To create a template PO-file, one needs to call `createPOTemplate`. This can for example
-be done by adding `CreatePOT` at the very end of the main file of the package.
+be done by adding `#create_pot` at the very end of the main file of the package.
 The template is written to a folder `.i18n/` in the package's directory as a `.pot` file.
 -/
 
@@ -43,5 +43,5 @@ def createPOTemplate : CommandElabM Unit := do
   logInfo s!"PO-file created at {path / fileName}"
 
 /-- Create a PO-template-file now! -/
-elab "CreatePOT" : command => do
+elab "#create_pot" : command => do
   createPOTemplate

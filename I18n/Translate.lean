@@ -11,7 +11,7 @@ Defines `t!"…"`, `tm!"…"`, and `String.translate` which all take (interpolat
 add them to the `untranslatedKeysExt` and try to fetch a translated (interp.) string
 for replacement.
 
-If the command `Language` is used within that document,
+If the command `set_language` is used within that document,
 -/
 
 namespace I18n
@@ -30,7 +30,7 @@ def loadTranslations : CoreM Unit := do
     modifyEnv (translationExt.addEntry · (e.msgId, e.msgStr))
 
 /-- Set the language this document should be translated into. -/
-elab "Language" lang:ident : command => do
+elab "set_language" lang:ident : command => do
   -- Load the language state
   let language : Language := Language.ofString lang.getId.toString
   let langState ← readLanguageConfig language
