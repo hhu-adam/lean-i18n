@@ -36,7 +36,7 @@ in the [GNU gettext manual](https://www.gnu.org/software/gettext/manual/html_nod
 You can use existing "PO editors" to manage the translations. For example, they help with
 merging an updated `.pot` file.
 
-If your thirdparty software produces a PO-file which can't be parsed (correctly) in Lean,
+If your third-party software produces a PO-file which can't be parsed (correctly) in Lean,
 please create a bug report here with a sample PO-file!
 
 ## Contribution
