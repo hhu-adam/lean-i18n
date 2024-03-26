@@ -1,3 +1,4 @@
+import I18n.I18next.Write
 import I18n.PO.ToString
 import I18n.Translate
 import Time
@@ -32,15 +33,18 @@ def createPOTemplate : CommandElabM Unit := do
 
   let keys := untranslatedKeysExt.getState (← getEnv)
   let langConfig ← readLanguageConfig
+  let sourceLang := langConfig.sourceLang.toString
   let poFile : POFile := {
     header := {
       projectIdVersion := s!"{projectName} v{Lean.versionString}"
       reportMsgidBugsTo := langConfig.translationContactEmail
       potCreationDate := ← Time.getLocalTime -- (← DateTime.now).extended_format
-      language := langConfig.sourceLang.toString }
+      language := sourceLang }
     entries := keys }
   poFile.save (path / fileName)
   logInfo s!"PO-file created at {path / fileName}"
+  -- -- save a copy as Json file for i18next support
+  -- poFile.saveAsJson
 
 /-- Create a PO-template-file now! -/
 elab "#create_pot" : command => do
