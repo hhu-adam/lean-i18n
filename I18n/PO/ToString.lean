@@ -13,7 +13,12 @@ namespace POEntry
 /-- A file name containing spaces is wrapped in U+2068 and U+2069. -/
 def escapeRef (s : String) : String := if
   s.contains ' ' then s!"⁨{s}⁩" else s
--- TODO: these characters when parsing a file!
+-- TODO: remove these characters when parsing a file!
+
+
+def escape (s : String) : String :=
+  s.replace "\\" "\\\\"
+    |>.replace "\"" "\\\""
 
 -- TODO: escape '"' everywhere
 /-- Turn a PO-entry intro a string as it would appear in the PO-file. Such a string
@@ -31,9 +36,9 @@ Note that even the comments are sometimes parsed, depending on the second charac
 def toString (e : POEntry) : String := Id.run do
   let mut out := ""
   if let some comment := e.comment then
-    out := out.append <| "".intercalate <| comment.trim.split (· == '\n') |>.map (s!"\n#  {·}")
+    out := out.append <| "".intercalate <| (escape comment).trim.split (· == '\n') |>.map (s!"\n#  {·}")
   if let some extrComment := e.extrComment then
-    out := out.append <| "".intercalate <| extrComment.trim.split (· == '\n') |>.map (s!"\n#. {·}")
+    out := out.append <| "".intercalate <| (escape extrComment).trim.split (· == '\n') |>.map (s!"\n#. {·}")
   -- print the refs
   if let some ref := e.ref then
     -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is
@@ -47,16 +52,16 @@ def toString (e : POEntry) : String := Id.run do
     out := out.append <| "\n#, " ++ ", ".intercalate flags
 
   if let some prevMsgCtxt := e.prevMsgCtxt then
-    out := out.append <| s!"\n#| msgctxt \"{prevMsgCtxt}\""
+    out := out.append <| s!"\n#| msgctxt \"{escape prevMsgCtxt}\""
   if let some prevMsgId := e.prevMsgId then
       out := out.append <|
         "\n#| msgid \"" ++
-        ("\\n\"\n#| \"".intercalate <| prevMsgId.split (· == '\n')) ++ "\""
+        ("\\n\"\n#| \"".intercalate <| (escape prevMsgId).split (· == '\n')) ++ "\""
   if let some msgCtx := e.msgCtxt then
-    out := out.append <| s!"\nmsgctxt \"{msgCtx}\""
+    out := out.append <| s!"\nmsgctxt \"{escape msgCtx}\""
   -- print the translation
-  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| e.msgId.split (· == '\n')) ++ "\""
-  let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| e.msgStr.split (· == '\n')) ++ "\""
+  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgId).split (· == '\n')) ++ "\""
+  let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgStr).split (· == '\n')) ++ "\""
   out := out.append <| "\nmsgid " ++ msgId
   out := out.append <| "\nmsgstr " ++ msgStr
   return out.trim
