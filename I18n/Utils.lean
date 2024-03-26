@@ -12,3 +12,7 @@ def getProjectName : CoreM Name := do
     return `project
   | some manifest =>
     return manifest.name
+
+def escape (s : String) : String :=
+  s.replace "\\" "\\\\"
+    |>.replace "\"" "\\\""

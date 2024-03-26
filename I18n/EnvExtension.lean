@@ -55,6 +55,9 @@ structure LanguageState where
   /-- The contact email for problems with the generated .POT file.
   This will be written in the POT-header. -/
   translationContactEmail := ""
+  /-- Use i18next-compatible json files. Not that they contain strictly less
+  information than PO files. -/
+  useJson := false
 
 instance : Inhabited LanguageState := ⟨{}⟩ -- all fields have default options.
 
@@ -89,6 +92,7 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
       "  \"sourceLang\": \"en\",\n" ++
       -- s!"  \"lang\": \"{lang}\",\n" ++
       "  \"translationContactEmail\": \"\"\n" ++
+      "  \"useJson\": false\n" ++
       "}\n"
     return {}
   else
@@ -110,6 +114,11 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
           | .ok mm => mm
           | .error _ => panic! s!"in {file}, key `translationContactEmail`: not a string!"
         | .error _ => panic! s!"{file} does not contain key `translationContactEmail`!"
+      let useJson := match res.getObjVal? "useJson" with
+        | .ok m => match m.getBool? with
+          | .ok mm => mm
+          | .error _ => panic! s!"in {file}, key `useJson`: not a boolean"
+        | .error _ => panic! s!"{file} does not contain key `useJson`!"
 
       let lang := match lang? with
       | some l => l
@@ -118,7 +127,8 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
       return {
         lang := lang
         sourceLang := sourceLang
-        translationContactEmail := email }
+        translationContactEmail := email
+        useJson := useJson }
     | .error err =>
       panic! s!"Failed to read {file}! ({err})"
 

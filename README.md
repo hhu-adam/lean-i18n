@@ -17,12 +17,12 @@ There are three options to mark strings for translation:
 * `String.translate`: to translate a string (meta code)
 
 Marking strings with these three options will collect untranslated strings throughout
-your project. To save them all to a PO-template file, you can call `#create_pot`, e.g. in your
+your project. To save them all to a PO-template file, you can call `#export_i18n`, e.g. in your
 project's main file.
-(Alternatively you can call `I18n.createPOTemplate` at any suitable point in your (meta-) code.)
+(Alternatively you can call `I18n.createTemplate` at any suitable point in your (meta-) code.)
 
-Both will create a file `.i18n/[yourProject].pot` which you can translate using any
-"PO Editor". The translated files should be saved as `.i18n/[yourProject]-[lang].po`
+Both will create a file `.i18n/en/[yourProject].pot` which you can translate using any
+"PO Editor". The translated files should be saved as `.i18n/[lang]/[yourProject].po`
 
 Once you have a translation present, you can use `set_language` to translate everything
 in the current document: e.g. set `set_language fr` at the top of your lean document and you should get
@@ -38,6 +38,14 @@ merging an updated `.pot` file.
 
 If your third-party software produces a PO-file which can't be parsed (correctly) in Lean,
 please create a bug report here with a sample PO-file!
+
+## Json Files
+
+You can also choose to use i18next-compatiple json files instead of PO-files.
+Note however, that these are much less expressive therefore it is recommended to work
+with PO-files.
+
+To use `Json` files, set `"useJson": true` inside `.i18n/config.json`.
 
 ## Contribution
 

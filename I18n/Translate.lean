@@ -1,6 +1,7 @@
 import Lean
 import I18n.EnvExtension
 import I18n.PO.Read
+import I18n.I18next.Read
 import I18n.InterpolatedStr
 
 open Lean Elab Term System
@@ -21,11 +22,18 @@ def loadTranslations : CoreM Unit := do
   let langState ← getLanguageState
   let projectDir ← IO.currentDir
   let projectName ← getProjectName
-  let file := projectDir / ".i18n" / s!"{projectName.toString}-{langState.lang}.po"
+
+  let ending := if langState.useJson then "json" else "po"
+  let file := projectDir / ".i18n" / s!"{langState.lang}" / s!"{projectName.toString}.{ending}"
   if ¬ (← FilePath.pathExists file) then
     logWarning s!"Translation file not found: {file}"
     return ()
-  let f ← POFile.read file
+
+  let f ← if langState.useJson then
+    POFile.readFromJson file
+  else
+    POFile.read file
+
   for e in f.entries do
     modifyEnv (translationExt.addEntry · (e.msgId, e.msgStr))
 

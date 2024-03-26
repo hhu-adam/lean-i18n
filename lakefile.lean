@@ -5,6 +5,7 @@ package i18n where
   -- add package configuration options here
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
+-- require importGraph from git "https://github.com/leanprover-community/import-graph" @ "v4.6.1"
 
 @[default_target]
 lean_lib I18n where

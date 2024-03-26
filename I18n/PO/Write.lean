@@ -8,7 +8,8 @@ import Time
 
 To create a template PO-file, one needs to call `createPOTemplate`. This can for example
 be done by adding `#create_pot` at the very end of the main file of the package.
-The template is written to a folder `.i18n/` in the package's directory as a `.pot` file.
+The template is written to a folder `.i18n/` in the package's directory as a `.pot` file
+(or optionally as `.json`).
 -/
 
 open Lean System
@@ -22,18 +23,20 @@ def POFile.save (poFile : POFile) (path : FilePath) : IO Unit :=
 open Elab.Command in
 
 /--
-Write all collected untranslated strings into a PO file
-which can be found at `.i18n/[projectName].pot`
+Write all collected untranslated strings into a template file.
 -/
-def createPOTemplate : CommandElabM Unit := do
+def createTemplate : CommandElabM Unit := do
   let projectName ← liftCoreM getProjectName
-  let fileName := s!"{projectName}.pot"
-  let path := (← IO.currentDir) / ".i18n"
+  let langConfig ← readLanguageConfig
+  let sourceLang := langConfig.sourceLang.toString
+  let langState ← getLanguageState
+  let ending := if langState.useJson then "json" else "po"
+  let fileName := s!"{projectName}.{ending}"
+  let path := (← IO.currentDir) / ".i18n" / sourceLang
   IO.FS.createDirAll path
 
   let keys := untranslatedKeysExt.getState (← getEnv)
-  let langConfig ← readLanguageConfig
-  let sourceLang := langConfig.sourceLang.toString
+
   let poFile : POFile := {
     header := {
       projectIdVersion := s!"{projectName} v{Lean.versionString}"
@@ -41,11 +44,16 @@ def createPOTemplate : CommandElabM Unit := do
       potCreationDate := ← Time.getLocalTime -- (← DateTime.now).extended_format
       language := sourceLang }
     entries := keys }
-  poFile.save (path / fileName)
-  logInfo s!"PO-file created at {path / fileName}"
+
+  if langConfig.useJson then
+    poFile.saveAsJson (path / fileName)
+    logInfo s!"Json-file created at {path / fileName}"
+  else
+    poFile.save (path / fileName)
+    logInfo s!"PO-file created at {path / fileName}"
   -- -- save a copy as Json file for i18next support
   -- poFile.saveAsJson
 
-/-- Create a PO-template-file now! -/
-elab "#create_pot" : command => do
-  createPOTemplate
+/-- Create a i18n-template-file now! -/
+elab "#export_i18n" : command => do
+  createTemplate

@@ -15,11 +15,6 @@ def escapeRef (s : String) : String := if
   s.contains ' ' then s!"⁨{s}⁩" else s
 -- TODO: remove these characters when parsing a file!
 
-
-def escape (s : String) : String :=
-  s.replace "\\" "\\\\"
-    |>.replace "\"" "\\\""
-
 -- TODO: escape '"' everywhere
 /-- Turn a PO-entry intro a string as it would appear in the PO-file. Such a string
 starts with a bunch of comment lines, followed by `msgid` and `msgstr` (and other options):

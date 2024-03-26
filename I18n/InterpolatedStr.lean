@@ -1,4 +1,5 @@
 import Lean
+import I18n.Utils
 
 /-!
 Functions to convert an interpolated string into a string and back.
@@ -34,7 +35,7 @@ open Parser
 /-- Parse a string as an interpolated string. (Modified from `Lean.Parser.runParserCategory`) -/
 def String.parseAsInterpolatedStr (env : Environment) (input : String) (fileName := "<input>") :
     Except String <| TSyntax `interpolatedStrKind :=
-  let input := s!"\"{input}\""
+  let input := s!"\"{escape input}\""
   let p := interpolatedStrFn <| andthenFn whitespace (categoryParserFnImpl `term)
   let ictx := mkInputContext input fileName
   let s := p.run ictx { env, options := {} } (getTokenTable env) (mkParserState input)
