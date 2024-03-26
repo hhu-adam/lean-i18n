@@ -27,10 +27,13 @@ Write all collected untranslated strings into a template file.
 -/
 def createTemplate : CommandElabM Unit := do
   let projectName ← liftCoreM getProjectName
+
+  -- read config instead of `languageState` because that state only
+  -- gets initialised if `set_language` is used in the document.
   let langConfig ← readLanguageConfig
+
   let sourceLang := langConfig.sourceLang.toString
-  let langState ← getLanguageState
-  let ending := if langState.useJson then "json" else "po"
+  let ending := if langConfig.useJson then "json" else "po"
   let fileName := s!"{projectName}.{ending}"
   let path := (← IO.currentDir) / ".i18n" / sourceLang
   IO.FS.createDirAll path
