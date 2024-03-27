@@ -66,6 +66,8 @@ Returns the original string on failure.
 -/
 def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m String := do
+  let s := s.trim
+
   s.markForTranslation
 
   let langConfig : LanguageState ← getLanguageState
@@ -90,6 +92,7 @@ def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
   let env ← getEnv
   let langState ← getLanguageState
   let key ← interpolatedStrKind.toString interpStr
+  let key := key.trim
   let newInterpStr ← if langState.lang == langState.sourceLang then
     -- We need to add the string as untranslated,
     -- but we can just return the existing string.

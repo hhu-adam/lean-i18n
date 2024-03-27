@@ -82,7 +82,7 @@ partial def strCore (acc : String := "") : Parsec String := do
     | some '"' =>
       -- concatenate strings split over multiple lines
       skip
-      return ← strCore (acc.push '\n')
+      return ← strCore acc
     | some _ =>
       -- string is completed
       return acc
