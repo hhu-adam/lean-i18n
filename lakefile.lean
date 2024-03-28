@@ -10,14 +10,14 @@ require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
 -- require importGraph from git "https://github.com/leanprover-community/import-graph" @ "v4.6.1"
 
 @[default_target]
-lean_lib I18n where
-  -- add library configuration options here
-
-@[default_target]
 lean_exe i18n where
-  root := `I18n.Cli
+  root := `Main
   -- Apparently it's needed!
   supportInterpreter := true
+
+@[default_target]
+lean_lib I18n where
+  -- add library configuration options here
 
 -- temporary replacement for `datetime` package.
 lean_lib Time where

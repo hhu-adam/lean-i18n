@@ -1,4 +1,3 @@
-import I18n.Cli
 import I18n.EnvExtension
 import I18n.InterpolatedStr
 import I18n.Json

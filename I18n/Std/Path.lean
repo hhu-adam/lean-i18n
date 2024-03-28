@@ -3,7 +3,8 @@ Copyright (c) 2022 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 
-NOTE(!): This is an unmodified copy of [Std](https://github.com/leanprover/std4), but
+NOTE(!): This is an unmodified copy of [Std](https://github.com/leanprover/std4)
+(besides adding the namespace), but
 requiring std as a package currently inflicts problems with version management,
 especially when `lean-i18n` is used in combination with `mathlib`.
 -/
@@ -14,6 +15,8 @@ import Lean.Elab.Term
 
 Use this as `searchPathRef.set compile_time_search_path%`.
 -/
+
+namespace I18n
 
 open Lean System
 
@@ -34,5 +37,5 @@ imported.
 (That is, if used in an imported file it will embed the search path from whichever machine
 compiled the `.olean`.)
 -/
-elab "compile_time_search_path%" : term =>
+elab "i18n_compile_time_search_path%" : term =>
   return toExpr (← searchPathRef.get)
