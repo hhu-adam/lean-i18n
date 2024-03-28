@@ -48,7 +48,7 @@ Currently the recommended workflow to retrieve i18next-compatible JSON files is 
 
 1. use `lake exe i18n --template` to create a `.pot` file
 2. create/manage the translated `.po` files as described above.
-3. run `lake exe i18n --export`. This will export *every* `.po` file inside the `.i18n/` folder
+3. run `lake exe i18n --export-json`. This will export *every* `.po` file inside the `.i18n/` folder
    into a Json located in the same folder.
 
 ### Avoiding PO files
