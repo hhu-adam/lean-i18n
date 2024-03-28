@@ -1,7 +1,5 @@
 import I18n.Cli
 
-namespace I18n
-
 open Cli
 
 /-- Setting up command line options and help text for `lake exe graph`. -/
@@ -16,9 +14,6 @@ unsafe def i18n : Cmd := `[Cli|
     e, "export-json"; "Exports all `.po` files in `.i18n/` to i18next-compatible `.json` format."
 ]
 
-/-- `lake exe graph` -/
-unsafe def mainUnsafe (args : List String) : IO UInt32 :=
+/-- `lake exe i18n` -/
+unsafe def main (args : List String) : IO UInt32 :=
   i18n.validate args
-
-@[implemented_by mainUnsafe]
-def main (args : List String) : IO UInt32 := do pure 0

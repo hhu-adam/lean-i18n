@@ -5,6 +5,7 @@ package i18n where
   -- add package configuration options here
 
 require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
+require std from git "https://github.com/leanprover/std4" @ "v4.6.0"
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
 -- require importGraph from git "https://github.com/leanprover-community/import-graph" @ "v4.6.1"
