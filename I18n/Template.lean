@@ -58,7 +58,7 @@ Write all collected untranslated strings into a template file.
 def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
   let path ← createTemplateAux keys
-  logInfo s!"File created at {path}"
+  logInfo s!"i18n: file created at {path}"
 
 
 /-- Create a i18n-template-file now! -/
