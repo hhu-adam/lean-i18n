@@ -1,7 +1,7 @@
 import Lean
 import I18n.EnvExtension
 import I18n.PO.Read
-import I18n.I18next.Read
+import I18n.Json.Read
 import I18n.InterpolatedStr
 
 open Lean Elab Term System

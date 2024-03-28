@@ -14,6 +14,6 @@ def POFile.toJson (poFile : POFile) : Json :=
 
 open Elab.Command in
 
-def POFile.saveAsJson (poFile : POFile) (path : FilePath) : CommandElabM Unit := do
+def POFile.saveAsJson (poFile : POFile) (path : FilePath) : IO Unit := do
   -- TODO: add overwrite-check
   IO.FS.writeFile path poFile.toJson.pretty

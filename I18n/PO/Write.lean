@@ -1,62 +1,120 @@
-import I18n.I18next.Write
-import I18n.PO.ToString
-import I18n.Translate
-import Time
--- import DateTime
+import I18n.PO.Definition
 
-/-! # Create PO-file
+/-!
+This file contains the tools to turn `POEntry` objects into strings.
 
-To create a template PO-file, one needs to call `createPOTemplate`. This can for example
-be done by adding `#create_pot` at the very end of the main file of the package.
-The template is written to a folder `.i18n/` in the package's directory as a `.pot` file
-(or optionally as `.json`).
+The other direction, i.e. parsing, happens in `I18n.PO.Read` using `Parsec`.
 -/
 
-open Lean System
 namespace I18n
 
+namespace POEntry
+
+/-- A file name containing spaces is wrapped in U+2068 and U+2069. -/
+def escapeRef (s : String) : String := if
+  s.contains ' ' then s!"⁨{s}⁩" else s
+-- TODO: remove these characters when parsing a file!
+
+-- TODO: escape '"' everywhere
+/-- Turn a PO-entry intro a string as it would appear in the PO-file. Such a string
+starts with a bunch of comment lines, followed by `msgid` and `msgstr` (and other options):
+
+```
+#  some comment
+#: Project.MyFile
+msgid "untranslated sentence"
+msgstr "übersetzter Satz"
+
+Note that even the comments are sometimes parsed, depending on the second character after `#`.
+```
+ -/
+def toString (e : POEntry) : String := Id.run do
+  let mut out := ""
+  if let some comment := e.comment then
+    out := out.append <| "".intercalate <| (escape comment).trim.split (· == '\n') |>.map (s!"\n#  {·}")
+  if let some extrComment := e.extrComment then
+    out := out.append <| "".intercalate <| (escape extrComment).trim.split (· == '\n') |>.map (s!"\n#. {·}")
+  -- print the refs
+  if let some ref := e.ref then
+    -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is
+    -- different to what's implemented here.
+    let formattedRefs := ref.map (fun (file, line?) => match line? with
+      | none => s!"\n#: {escapeRef file}"
+      | some line => s!"\n#: {escapeRef file}:{line}" )
+    out := out.append <| "".intercalate formattedRefs
+  -- print the flags
+  if let some flags := e.flags then
+    out := out.append <| "\n#, " ++ ", ".intercalate flags
+
+  if let some prevMsgCtxt := e.prevMsgCtxt then
+    out := out.append <| s!"\n#| msgctxt \"{escape prevMsgCtxt}\""
+  if let some prevMsgId := e.prevMsgId then
+      out := out.append <|
+        "\n#| msgid \"" ++
+        ("\\n\"\n#| \"".intercalate <| (escape prevMsgId).split (· == '\n')) ++ "\""
+  if let some msgCtx := e.msgCtxt then
+    out := out.append <| s!"\nmsgctxt \"{escape msgCtx}\""
+  -- print the translation
+  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgId).split (· == '\n')) ++ "\""
+  let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgStr).split (· == '\n')) ++ "\""
+  out := out.append <| "\nmsgid " ++ msgId
+  out := out.append <| "\nmsgstr " ++ msgStr
+  return out.trim
+
+instance : ToString POEntry := ⟨POEntry.toString⟩
+
+/-- Paring the header entry into a `POHeaderEntry`. -/
+def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
+  return {
+    -- TODO: implement!
+    projectIdVersion := ""
+    reportMsgidBugsTo := ""
+    potCreationDate := ""
+    poRevisionDate := ""
+    lastTranslator := ""
+    languageTeam := ""
+    language := ""
+    contentType := ""
+    contentTransferEncoding := ""
+    pluralForms := ""
+  }
+
+end POEntry
+
+namespace POHeaderEntry
+
+/-- The header entry is marked in the PO-file with `msgid = ""`. -/
+def toPOEntry (header : POHeaderEntry): POEntry := Id.run do
+  let mut msgStr := ""
+  msgStr := msgStr.append s!"Project-Id-Version: {header.projectIdVersion}"
+  msgStr := msgStr.append s!"\nReport-Msgid-Bugs-To: {header.reportMsgidBugsTo}"
+  msgStr := msgStr.append s!"\nPOT-Creation-Date: {header.potCreationDate}"
+  if let some revisionDate := header.poRevisionDate then
+    msgStr := msgStr.append s!"\nPO-Revision-Date: {revisionDate}"
+  msgStr := msgStr.append s!"\nLast-Translator: {header.lastTranslator}"
+  msgStr := msgStr.append s!"\nLanguage-Team: {header.languageTeam}"
+  msgStr := msgStr.append s!"\nLanguage: {header.language}"
+  msgStr := msgStr.append s!"\nContent-Type: {header.contentType}"
+  msgStr := msgStr.append s!"\nContent-Transfer-Encoding: {header.contentTransferEncoding}"
+  if let some pluralForms := header.pluralForms then
+    msgStr := msgStr.append s!"\nPlural-Forms: {pluralForms}"
+  return {msgId := "", msgStr := msgStr}
+
+end POHeaderEntry
+
+namespace POFile
+
+/-- Print a PO file as string.
+A PO file is a series of po-entries, the first one should come from the header.
+-/
+def toString (f : POFile) : String :=
+  ("\n\n".intercalate (([f.header.toPOEntry] ++ f.entries.toList).map (fun e => s!"{e}"))) ++ "\n"
+
+instance : ToString POFile := ⟨POFile.toString⟩
+
+open Lean System
+
 /-- Write a PO-file to disk. -/
-def POFile.save (poFile : POFile) (path : FilePath) : IO Unit :=
+def save (poFile : POFile) (path : FilePath) : IO Unit :=
   -- TODO: add overwrite-check
   IO.FS.writeFile path poFile.toString
-
-open Elab.Command in
-
-/--
-Write all collected untranslated strings into a template file.
--/
-def createTemplate : CommandElabM Unit := do
-  let projectName ← liftCoreM getProjectName
-
-  -- read config instead of `languageState` because that state only
-  -- gets initialised if `set_language` is used in the document.
-  let langConfig ← readLanguageConfig
-
-  let sourceLang := langConfig.sourceLang.toString
-  let ending := if langConfig.useJson then "json" else "po"
-  let fileName := s!"{projectName}.{ending}"
-  let path := (← IO.currentDir) / ".i18n" / sourceLang
-  IO.FS.createDirAll path
-
-  let keys := untranslatedKeysExt.getState (← getEnv)
-
-  let poFile : POFile := {
-    header := {
-      projectIdVersion := s!"{projectName} v{Lean.versionString}"
-      reportMsgidBugsTo := langConfig.translationContactEmail
-      potCreationDate := ← Time.getLocalTime -- (← DateTime.now).extended_format
-      language := sourceLang }
-    entries := keys }
-
-  if langConfig.useJson then
-    poFile.saveAsJson (path / fileName)
-    logInfo s!"Json-file created at {path / fileName}"
-  else
-    poFile.save (path / fileName)
-    logInfo s!"PO-file created at {path / fileName}"
-  -- -- save a copy as Json file for i18next support
-  -- poFile.saveAsJson
-
-/-- Create a i18n-template-file now! -/
-elab "#export_i18n" : command => do
-  createTemplate

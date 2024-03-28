@@ -91,7 +91,7 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
     IO.FS.writeFile file <| "{\n" ++
       "  \"sourceLang\": \"en\",\n" ++
       -- s!"  \"lang\": \"{lang}\",\n" ++
-      "  \"translationContactEmail\": \"\"\n" ++
+      "  \"translationContactEmail\": \"\",\n" ++
       "  \"useJson\": false\n" ++
       "}\n"
     return {}
