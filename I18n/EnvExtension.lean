@@ -108,17 +108,17 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
         | .ok l => match l.getStr? with
           | .ok ll => Language.ofString ll
           | .error _ => panic! s!"in {file}, key `sourceLang`: not a string!"
-        | .error _ => panic! s!"{file} does not contain key `sourceLang`!"
+        | .error _ => {lang := `en} -- panic! s!"{file} does not contain key `sourceLang`!"
       let email := match res.getObjVal? "translationContactEmail" with
         | .ok m => match m.getStr? with
           | .ok mm => mm
           | .error _ => panic! s!"in {file}, key `translationContactEmail`: not a string!"
-        | .error _ => panic! s!"{file} does not contain key `translationContactEmail`!"
+        | .error _ => "" -- panic! s!"{file} does not contain key `translationContactEmail`!"
       let useJson := match res.getObjVal? "useJson" with
         | .ok m => match m.getBool? with
           | .ok mm => mm
           | .error _ => panic! s!"in {file}, key `useJson`: not a boolean"
-        | .error _ => panic! s!"{file} does not contain key `useJson`!"
+        | .error _ => false -- panic! s!"{file} does not contain key `useJson`!"
 
       let lang := match lang? with
       | some l => l
