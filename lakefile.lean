@@ -4,11 +4,13 @@ open Lake DSL
 package i18n where
   -- add package configuration options here
 
+def leanVersion : String := s!"v{Lean.versionString}"
+
 require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
-require std from git "https://github.com/leanprover/std4" @ "v4.6.0"
+require std from git "https://github.com/leanprover/std4" @ leanVersion
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
--- require importGraph from git "https://github.com/leanprover-community/import-graph" @ "v4.6.1"
+-- require importGraph from git "https://github.com/leanprover-community/import-graph" @ leanVersion
 
 @[default_target]
 lean_exe i18n where
