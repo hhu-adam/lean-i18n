@@ -7,7 +7,7 @@ package i18n where
 def leanVersion : String := s!"v{Lean.versionString}"
 
 require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
-require std from git "https://github.com/leanprover/std4" @ leanVersion
+require batteries from git "https://github.com/leanprover-community/batteries" @ leanVersion
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
 -- require importGraph from git "https://github.com/leanprover-community/import-graph" @ leanVersion
@@ -31,7 +31,7 @@ target time.o pkg : FilePath := do
   let oFile := pkg.buildDir / "c" / "time.o"
   let srcJob ← inputFile <| pkg.dir / "time" / "c" / "time.cpp"
   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
-  buildO "time.cpp" oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
+  buildO oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
 
 extern_lib libLeanTime pkg := do
   let name := nameToStaticLib "leanTime"

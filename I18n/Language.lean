@@ -36,13 +36,13 @@ def ofString (s : String) : Language :=
   match s.split (· = '_') with
   | [langVariant] =>
     match langVariant.split (· = '@') with
-    | [lang]          => ⟨lang, none, none⟩
-    | [lang, variant] => ⟨lang, none, variant⟩
+    | [lang]          => ⟨.mkSimple lang, none, none⟩
+    | [lang, variant] => ⟨.mkSimple lang, none, some <| .mkSimple variant⟩
     | _               => panic! s!"Invalid language string: {s}"
   | [lang, countryVariant] =>
     match countryVariant.split (· = '@') with
-    | [country]          => ⟨lang, country, none⟩
-    | [country, variant] => ⟨lang, country, variant⟩
+    | [country]          => ⟨.mkSimple lang, some <| .mkSimple country, none⟩
+    | [country, variant] => ⟨.mkSimple lang, some <| .mkSimple country, some <| .mkSimple variant⟩
     | _                  => panic! s!"Invalid language string: {s}"
   | _ =>
     panic! s!"Invalid language string: {s}"
