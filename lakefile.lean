@@ -27,13 +27,17 @@ lean_lib Time where
   srcDir := "." / "time"
   precompileModules := true
 
-target time.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "c" / "time.o"
-  let srcJob ← inputFile <| pkg.dir / "time" / "c" / "time.cpp"
-  let weakArgs := #["-I", (← getLeanIncludeDir).toString]
-  buildO oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
+/-
+TODO: If the user does not have `c++` available this makes the package
+and all dependencies unusable. Reactivate if there is a better solution
+-/
+-- target time.o pkg : FilePath := do
+--   let oFile := pkg.buildDir / "c" / "time.o"
+--   let srcJob ← inputFile <| pkg.dir / "time" / "c" / "time.cpp"
+--   let weakArgs := #["-I", (← getLeanIncludeDir).toString]
+--   buildO oFile srcJob weakArgs #["-fPIC"] "c++" getLeanTrace
 
-extern_lib libLeanTime pkg := do
-  let name := nameToStaticLib "leanTime"
-  let timeO ← fetch <| pkg.target ``time.o
-  buildStaticLib (pkg.nativeLibDir / name) #[timeO]
+-- extern_lib libLeanTime pkg := do
+--   let name := nameToStaticLib "leanTime"
+--   let timeO ← fetch <| pkg.target ``time.o
+--   buildStaticLib (pkg.nativeLibDir / name) #[timeO]
