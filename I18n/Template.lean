@@ -57,7 +57,13 @@ Write all collected untranslated strings into a template file.
 -/
 def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
-  let path ← createTemplateAux keys
+
+  -- there might be multiple keys with identical msgId, which we need to merge
+  let groupedEntries : HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
+  let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
+    POEntry.mergeMetaDataList entries.toList)
+
+  let path ← createTemplateAux mergedKeys
   logInfo s!"i18n: file created at {path}"
 
 
