@@ -136,15 +136,15 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
 This extension holds the loaded translations `sourceLang` to `lang`.
 It is up to the developer to keep it in sync with the `languageExt`.
  -/
-initialize translationExt : SimplePersistentEnvExtension (String × String) (HashMap String String)
+initialize translationExt : SimplePersistentEnvExtension (String × String) (Std.HashMap String String)
   ← registerSimplePersistentEnvExtension {
       name := `i18n_translations
       addEntryFn := fun hm (x : String × String) => hm.insert x.1 x.2
-      addImportedFn := fun arr => HashMap.ofList (arr.concatMap id).toList }
+      addImportedFn := fun arr => Std.HashMap.ofList (arr.concatMap id).toList }
 
 /--
 Get the translations from the environment. It is a `HashMap String String`
 mapping from the untranslated string to the translation.
 -/
-def getTranslations [Monad m] [MonadEnv m] : m (HashMap String String) := do
+def getTranslations [Monad m] [MonadEnv m] : m (Std.HashMap String String) := do
   return translationExt.getState (← getEnv)

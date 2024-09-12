@@ -74,7 +74,7 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
   let sTranslated ← if langConfig.lang == langConfig.sourceLang then
     pure s
   else
-    match (← getTranslations).find? s with
+    match (← getTranslations)[s]? with
     | none =>
       -- Print a warning that the translation has not been found
       logWarning s!"No translation ({langConfig.lang}) found for: {s}"

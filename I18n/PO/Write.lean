@@ -63,6 +63,9 @@ def toString (e : POEntry) : String := Id.run do
 
 instance : ToString POEntry := ⟨POEntry.toString⟩
 
+-- TODO: Parse the header entry!
+set_option linter.unusedVariables false in
+
 /-- Paring the header entry into a `POHeaderEntry`. -/
 def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
   return {

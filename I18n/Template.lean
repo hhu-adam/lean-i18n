@@ -59,7 +59,7 @@ def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
 
   -- there might be multiple keys with identical msgId, which we need to merge
-  let groupedEntries : HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
+  let groupedEntries : Std.HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
   let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
     POEntry.mergeMetaDataList entries.toList)
 

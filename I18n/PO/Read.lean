@@ -2,11 +2,14 @@ import I18n.PO.Definition
 
 /-! # Parse PO-Files
 
-The main function of this file is `POFile.read`, which uses `Parsec` to
+The main function of this file is `POFile.read`,
+which uses `Std.Internal.Parsec.String.Parser` to
 parse a PO-file and returns a `POFile`.
 -/
 
 open Lean
+open Std.Internal.Parsec
+open Std.Internal.Parsec.String
 
 namespace I18n
 
@@ -23,8 +26,6 @@ def parseRefs (ref : String) : List (String × Option Nat) :=
 /-- Parse a comma-separated string of PO-flags. -/
 def parseFlags (flags : String) : List String :=
   flags.split (· = ',') |>.map (·.trim)
-
-open Parsec
 
 /-- Internal function used by `ws_maxOneLF` -/
 partial def skipWs_maxOneLF (it : String.Iterator) (foundLF := false) : String.Iterator :=
@@ -44,12 +45,12 @@ partial def skipWs_maxOneLF (it : String.Iterator) (foundLF := false) : String.I
 
 /-- Consume zero or more whitespace characters, but maximal one newline character -/
 @[inline]
-def ws_maxOneLF : Parsec Unit := fun it =>
+def ws_maxOneLF : Parser Unit := fun it =>
   .success (skipWs_maxOneLF it) ()
 
 /-- Parse the next character as an escaped code. -/
-def escapedChar : Parsec Char := do
-  let c ← anyChar
+def escapedChar : Parser Char := do
+  let c ← any
   match c with
   | '\\' => return '\\'
   | '"'  => return '"'
@@ -68,7 +69,7 @@ def escapedChar : Parsec Char := do
 Parses the content of a PO-file string, not including the initial `"`.
 Accepts multiline strings which are closed and reopened around each line-break
  -/
-partial def strCore (acc : String := "") : Parsec String := do
+partial def strCore (acc : String := "") : Parser String := do
   let c ← peek!
   if c = '"' then
     -- end of string found. try to look for continuation on next line
@@ -88,7 +89,7 @@ partial def strCore (acc : String := "") : Parsec String := do
       return acc
   else
     -- process character inside the string
-    let c ← anyChar
+    let c ← any
     if c = '\\' then
       strCore (acc.push (← escapedChar))
     else
@@ -96,14 +97,14 @@ partial def strCore (acc : String := "") : Parsec String := do
 
 /-- Helper function to peek at the second character coming up. -/
 @[inline]
-def peek2? : Parsec (Option Char) := fun it =>
+def peek2? : Parser (Option Char) := fun it =>
   if it.next.hasNext then
     .success it it.next.curr
   else
     .success it none
 
 @[inherit_doc peek2?, inline]
-def peek2! : Parsec Char := do
+def peek2! : Parser Char := do
   let some c ← peek2? | fail unexpectedEndOfInput
   return c
 
@@ -111,7 +112,7 @@ def peek2! : Parsec Char := do
 `f` is a character that should directly follow the '#'
 
 TODO: Implement whitespace `f` instead of just `f = ' '`. -/
-partial def commentCore (acc : String := "") (f : Char) : Parsec String := do
+partial def commentCore (acc : String := "") (f : Char) : Parser String := do
   let c ← peek!
   if c = '\n' then
     -- A comment can continue on the next line if that line starts with `#_` where `_`
@@ -136,16 +137,16 @@ partial def commentCore (acc : String := "") (f : Char) : Parsec String := do
       -- next line does not contain a comment
       return acc
   else
-    let c ← anyChar
+    let c ← any
     if c = '\\' then
       commentCore (acc.push (← escapedChar)) f
     else
       commentCore (acc.push c) f
 
 /-- Returns the content of a comment. -/
-partial def commentAux (acc : POEntry) : Parsec POEntry := do
+partial def commentAux (acc : POEntry) : Parser POEntry := do
   -- This first character specifies the sort of comment, see po specification.
-  let f ← anyChar
+  let f ← any
   if f = '\t' ∨ f = '\n' ∨ f = '\r' ∨ f = ' ' then
     -- whitespace
     ws
@@ -201,7 +202,7 @@ partial def commentAux (acc : POEntry) : Parsec POEntry := do
 /-- Parse an PO-entry.
 
 Note: This assumes that there are no leading spaces on any lines. Is that fine? -/
-partial def parseEntry (acc : Option POEntry := none) : Parsec POEntry := do
+partial def parseEntry (acc : Option POEntry := none) : Parser POEntry := do
   let acc : POEntry := match acc with
   | some acc => acc
   | none => { msgId := "" }
@@ -240,7 +241,7 @@ partial def parseEntry (acc : Option POEntry := none) : Parsec POEntry := do
 
 /-- Core for `I18n.POFile.Parser.parseFile` -/
 partial def parseFileCore (entries : Array POEntry := #[]) (header : Option POHeaderEntry := none) :
-    Parsec POFile := do
+    Parser POFile := do
   ws
   match (← peek?) with
   | some _ =>
@@ -265,8 +266,8 @@ partial def parseFileCore (entries : Array POEntry := #[]) (header : Option POHe
         language          := "" }
     return {entries := entries, header := header}
 
-/-- Parsec parser for PO files. -/
-def parseFile : Parsec POFile := do
+/-- Parser for PO files. -/
+def parseFile : Parser POFile := do
   ws
   let res ← parseFileCore
   eof
@@ -277,8 +278,8 @@ end Parser
 /-- Parse the content of a PO file. -/
 def parse (s : String) : Except String POFile :=
   match POFile.Parser.parseFile s.mkIterator with
-  | Parsec.ParseResult.success _ res => Except.ok res
-  | Parsec.ParseResult.error it err  => Except.error s!"offset {repr it.i.byteIdx}: {err}"
+  | .success _ res => Except.ok res
+  | .error it err  => Except.error s!"offset {repr it.i.byteIdx}: {err}"
 
 end POFile
 
