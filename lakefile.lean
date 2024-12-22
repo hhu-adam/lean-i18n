@@ -6,8 +6,8 @@ package i18n where
 
 def leanVersion : String := s!"v{Lean.versionString}"
 
-require Cli from git "https://github.com/leanprover/lean4-cli" @ "main"
-require batteries from git "https://github.com/leanprover-community/batteries" @ leanVersion
+require "leanprover" / Cli @ git "main"
+require "leanprover-community" / batteries @ git leanVersion
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
 -- require importGraph from git "https://github.com/leanprover-community/import-graph" @ leanVersion

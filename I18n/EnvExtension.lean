@@ -27,7 +27,7 @@ initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Array POE
   registerSimplePersistentEnvExtension {
     name := `i18n_keys
     addEntryFn := Array.push
-    addImportedFn := Array.concatMap id }
+    addImportedFn := Array.flatMap id }
 
 -- debugging only
 def listTranslations [Monad m] [MonadEnv m]
@@ -140,7 +140,7 @@ initialize translationExt : SimplePersistentEnvExtension (String × String) (Std
   ← registerSimplePersistentEnvExtension {
       name := `i18n_translations
       addEntryFn := fun hm (x : String × String) => hm.insert x.1 x.2
-      addImportedFn := fun arr => Std.HashMap.ofList (arr.concatMap id).toList }
+      addImportedFn := fun arr => Std.HashMap.ofList (arr.flatMap id).toList }
 
 /--
 Get the translations from the environment. It is a `HashMap String String`
