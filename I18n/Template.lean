@@ -1,9 +1,8 @@
+import Std.Time
 import I18n.Json
 import I18n.PO
 
 import I18n.Translate
-import Time
--- import DateTime
 
 /-! # Create PO-file
 
@@ -39,7 +38,7 @@ def createTemplateAux (keys : Array POEntry) : IO FilePath := do
     header := {
       projectIdVersion := s!"{projectName} v{Lean.versionString}"
       reportMsgidBugsTo := langConfig.translationContactEmail
-      potCreationDate := ← Time.getLocalTime -- (← DateTime.now).extended_format
+      potCreationDate := (← Std.Time.PlainDate.now) |>.format "uuuu-MM-dd"
       language := sourceLang }
     entries := keys }
 
