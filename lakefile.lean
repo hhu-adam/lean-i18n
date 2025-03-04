@@ -6,7 +6,7 @@ package i18n where
 
 def leanVersion : String := s!"v{Lean.versionString}"
 
-require "leanprover" / Cli @ git "27f69ad2b2b88fb0844b1c17624576a3654a335e"
+require "leanprover" / Cli @ git leanVersion
 require "leanprover-community" / batteries @ git leanVersion
 
 -- require datetime from git "https://github.com/T-Brick/DateTime.git" @ "main"
