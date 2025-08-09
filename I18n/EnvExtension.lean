@@ -26,7 +26,7 @@ Contains all extraced, yet untranslated strings.
 initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Array POEntry) ←
   registerSimplePersistentEnvExtension {
     name := `i18n_keys
-    asyncMode := .async
+    asyncMode := .sync
     addEntryFn := Array.push
     addImportedFn := Array.flatMap id }
 
@@ -63,7 +63,7 @@ structure LanguageState where
 instance : Inhabited LanguageState := ⟨{}⟩ -- all fields have default options.
 
 /-- Register a (non-persistent) environment extension to hold the language settings. -/
-initialize languageExt : EnvExtension (LanguageState) ← registerEnvExtension (pure default) (asyncMode := .async)
+initialize languageExt : EnvExtension (LanguageState) ← registerEnvExtension (pure default) (asyncMode := .sync)
 
 /-- Set the language state. Note that this is *not* persistent across documents. -/
 def setLanguageState [Monad m] [MonadEnv m] (s : LanguageState) : m Unit := do
@@ -140,7 +140,7 @@ It is up to the developer to keep it in sync with the `languageExt`.
 initialize translationExt : SimplePersistentEnvExtension (String × String) (Std.HashMap String String)
   ← registerSimplePersistentEnvExtension {
       name := `i18n_translations
-      asyncMode := .async
+      asyncMode := .sync
       addEntryFn := fun hm (x : String × String) => hm.insert x.1 x.2
       addImportedFn := fun arr => Std.HashMap.ofList (arr.flatMap id).toList }
 
