@@ -139,6 +139,7 @@ It is up to the developer to keep it in sync with the `languageExt`.
 initialize translationExt : SimplePersistentEnvExtension (String × String) (Std.HashMap String String)
   ← registerSimplePersistentEnvExtension {
       name := `i18n_translations
+      asyncMode := .async
       addEntryFn := fun hm (x : String × String) => hm.insert x.1 x.2
       addImportedFn := fun arr => Std.HashMap.ofList (arr.flatMap id).toList }
 
