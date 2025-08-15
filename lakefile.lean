@@ -9,7 +9,7 @@ require "leanprover" / Cli @ git leanVersion
 require "leanprover-community" / batteries @ git leanVersion
 
 -- dev Dependency
-require "leanprover-community" / importGraph @ git leanVersion
+-- require "leanprover-community" / importGraph @ git leanVersion
 
 @[default_target]
 lean_exe i18n where
