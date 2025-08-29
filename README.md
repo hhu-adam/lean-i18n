@@ -32,6 +32,17 @@ Once you have a translation present, you can use `set_language` to translate eve
 in the current document: e.g. set `set_language fr` at the top of your lean document and you
 should get your French translation of strings printed.
 
+### Code blocks
+
+`lean-i18n` extracts code blocks from strings to be translated, and replacese them with `§n` in
+the translation key. Code blocks are defined in the markdown sense: they are marked with one or more backticks at the beginning and end.
+
+E.g. the string ``Using tactic `simp` we get `0`.`` will be turned into
+`Using tactic §0 we get §1.`. You can als change the order of the arguments in the translation, for
+example: `Hier erhalten wir §1 durch das Anwenden der Taktik §0.`
+
+The PO-file will contain the raw code blocks in the "extracted comments" (lines prefixed with `#.`) to assist translation. The Json files do currently not contain the code-blocks anymore.
+
 ## PO Files
 
 This package aims to support PO files as specified
