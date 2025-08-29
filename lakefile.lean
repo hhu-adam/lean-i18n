@@ -19,3 +19,7 @@ lean_exe i18n where
 
 @[default_target]
 lean_lib I18n where
+
+lean_exe tests {
+   root := `Test.TranslationTest
+}
