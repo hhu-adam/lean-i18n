@@ -58,7 +58,7 @@ Replace code blocks in the string `s` with palceholders `§n`.
 - `§n` corresponds to the nᵗʰ element of the returned `List`,
   i.e. the first placeholder is `§0`.
 -/
-partial def _root_.String.extractCodeBlocks (input : String) : String × Array String := Id.run do
+def _root_.String.extractCodeBlocks (input : String) : String × Array String := Id.run do
   let mut pos : String.Pos := 0
   let mut out : Array Char := Array.emptyWithCapacity input.utf8ByteSize
   let mut blocks : Array String := #[]
@@ -98,7 +98,7 @@ partial def _root_.String.extractCodeBlocks (input : String) : String × Array S
         let endDelimiterLength := endDelimiterLength + 1
         if endDelimiterLength == startDelimiterLength then
           state := .text
-          out := out.append s!"\{{blocks.size}}".data.toArray
+          out := out.append s!"§{blocks.size}".data.toArray
           blocks := blocks.push (String.mk blockContent.toList)
         else
           state := .endDelimiter delimiterChar startDelimiterLength blockContent endDelimiterLength
@@ -122,8 +122,9 @@ def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMes
 
   let (key, codeBlocks) := s.extractCodeBlocks
 
-  let extractedComment := codeBlocks.zipIdx.foldl (init := "") fun acc (block, n) =>
-        acc ++ s!"§{n}: {block}\n"
+  let extractedComment := match codeBlocks.size with
+  | 0 => none
+  | _ => some <| codeBlocks.zipIdx.foldl (init := "") fun acc (block, n) => acc ++ s!"§{n}: {block}\n"
 
   let entry : POEntry := {
     msgId := key
