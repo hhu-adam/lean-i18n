@@ -19,8 +19,9 @@ unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
     try withImportModules #[module] {} (trustLevel := 1024) fun env => do
       -- same as `createTemplate` but we're not in `CommandElabM`, but have the `env` explicitely
       let keys := untranslatedKeysExt.getState env
+      IO.println s!"i18n: Generate keys {keys}"
       let path ← createTemplateAux keys
-      IO.println s!"i18n: file created at {path}"
+      IO.println s!"i18n: HELLO file created at {path}"
     catch err =>
       throw <| IO.userError <| s!"{err}\n" ++
         "i18n: You might want to `lake build` your project first!\n"
