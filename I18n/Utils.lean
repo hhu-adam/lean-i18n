@@ -47,3 +47,7 @@ partial def findFilesWithExtension (path : FilePath) (extension : String) :
 def escape (s : String) : String :=
   s.replace "\\" "\\\\"
     |>.replace "\"" "\\\""
+
+def unescape (s : String) : String :=
+  s.replace "\\\"" "\""
+  |>.replace "\\\\" "\\"

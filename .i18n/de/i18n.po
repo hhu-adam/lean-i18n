@@ -1,0 +1,26 @@
+msgid ""
+msgstr "Project-Id-Version: i18n v4.22.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-06\n"
+"Last-Translator: Jon Eugster\n"
+"Language-Team: none\n"
+"Language: de\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
+
+#: Test.Test
+msgid "hello world"
+msgstr "Hallo Welt"
+
+#: Test.Test
+msgid "Test"
+msgstr "Test"
+
+#. §0: `a`
+#. §1: `b`
+#. §2: ```
+#. Test
+#. ```
+#: Test.Test
+msgid "hello world: §0 is §1 and §2"
+msgstr "Hallow Welt: §0 ist §1 und §2"

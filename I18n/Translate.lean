@@ -3,6 +3,7 @@ import I18n.EnvExtension
 import I18n.PO.Read
 import I18n.Json.Read
 import I18n.InterpolatedStr
+import I18n.Utils.CodeBlockExtractor
 
 open Lean Elab Term System
 
@@ -53,11 +54,18 @@ Add a string to the set of untranslated strings
 def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m Unit := do
   let env ← getEnv
-  let entry : POEntry := {
-    msgId := s
-    ref := some [(env.mainModule.toString, none)] }
-  modifyEnv (untranslatedKeysExt.addEntry · entry)
 
+  let (key, codeBlocks) := s.extractCodeBlocks
+
+  let extractedComment := match codeBlocks.size with
+  | 0 => none
+  | _ => some <| codeBlocks.zipIdx.foldl (init := "") fun acc (block, n) => acc ++ s!"§{n}: {block}\n"
+
+  let entry : POEntry := {
+    msgId := key
+    ref := some [(env.mainModule.toString, none)]
+    extrComment := extractedComment }
+  modifyEnv (untranslatedKeysExt.addEntry · entry)
 
 /--
 Add the string as untranslated, look up a translation
@@ -71,17 +79,18 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
   s.markForTranslation
 
   let langConfig : LanguageState ← getLanguageState
-  let sTranslated ← if langConfig.lang == langConfig.sourceLang then
-    pure s
+  if langConfig.lang == langConfig.sourceLang then
+    return s
   else
-    match (← getTranslations)[s]? with
+    let (key, codeBlocks) := s.extractCodeBlocks
+    match (← getTranslations)[key]? with
     | none =>
       -- Print a warning that the translation has not been found
-      logWarning s!"No translation ({langConfig.lang}) found for: {s}"
-      pure s
+      logWarning s!"No translation ({langConfig.lang}) found for: {key}"
+      return s
     | some tr =>
-      pure tr
-  return sTranslated
+      -- Insert the codeblocks from the original string into the translation.
+      return tr.insertCodeBlocks codeBlocks
 
 /--
 Translate an interpolated string by turning it into a normal string
