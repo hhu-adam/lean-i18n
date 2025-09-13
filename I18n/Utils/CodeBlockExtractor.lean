@@ -1,7 +1,7 @@
 namespace String
 
 /--
-Utils to replace codeblocks and Latx-blocks with `§n`.
+Utils to replace code-blocks and Latex-blocks with `§n`.
 -/
 
 def insertCodeBlocks (text : String) (blocks : Array String) : String := Id.run do

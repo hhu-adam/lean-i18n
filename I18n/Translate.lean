@@ -48,7 +48,6 @@ elab "set_language" lang:ident : command => do
   -- Load in the translation for that language
   Elab.Command.liftCoreM <| loadTranslations
 
-
 /--
 Add a string to the set of untranslated strings
 -/
