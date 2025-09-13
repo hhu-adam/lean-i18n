@@ -1,27 +1,31 @@
 import I18n.Translate
 
-def testCorrectNumberOfCodeBlocks : IO Unit := do
-  let input := r#"$a$ $b$ $c$ $d$ $e$ $f$ $g$ $h$ $i$ $j$ $k$"#
-  let (t, _) := input.extractCodeBlocks
-  let exp := "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}"
-  if t == exp then
-    IO.println "Test for correct number of code blocks passed. ✅"
-  else
-    IO.println "Test for correct number of code blocks did not pass. ❌"
+def input := r#"$a$ $b$ $c$ $d$ $e$ $f$ $g$ $h$ $i$ $j$ $k$"#
 
-def testCorrectInsertionOfCodeBlocks : IO Unit := do
-  let input := r#"$a$ $b$ $c$ $d$ $e$ $f$ $g$ $h$ $i$ $j$ $k$"#
-  let (t, b) := input.extractCodeBlocks
-  let res := insertCodeBlocks t b
-  if res == input then
-    IO.println "Test for correct insertion of code blocks passed. ✅"
-  else
-    IO.println "Test for correct insertion of code blocks did not pass. ❌"
+#guard input.extractCodeBlocks.1 == "§0 §1 §2 §3 §4 §5 §6 §7 §8 §9 §10"
+#guard input.extractCodeBlocks.2 == #["$a$", "$b$", "$c$", "$d$", "$e$", "$f$", "$g$", "$h$", "$i$", "$j$", "$k$"]
 
-def runAllTests : IO Unit := do
-  IO.println "Running tests..."
-  testCorrectNumberOfCodeBlocks
-  testCorrectInsertionOfCodeBlocks
-  IO.println "All tests completed"
+/- check inserting blocks from extracted -/
+#guard (
+  let (key, blocks) := input.extractCodeBlocks
+  key.insertCodeBlocks blocks == input )
 
-def main : IO Unit := runAllTests
+/-- info: ("\\§0", #[]) -/
+#guard_msgs in
+#eval r"§0".extractCodeBlocks
+
+/-- info: ("$a$", #[]) -/
+#guard_msgs in
+#eval r"\$a\$".extractCodeBlocks
+
+/-- info: ("`a`", #[]) -/
+#guard_msgs in
+#eval r"\`a\`".extractCodeBlocks
+
+/-- info: ("```a```", #[]) -/
+#guard_msgs in
+#eval r"\`\`\`a\`\`\`".extractCodeBlocks
+
+/-- info: ("\\\\§0", #["$a$"]) -/
+#guard_msgs in
+#eval r"\\$a$".extractCodeBlocks
