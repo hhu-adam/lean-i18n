@@ -90,8 +90,7 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
       return s
     | some tr =>
       -- Insert the codeblocks from the original string into the translation.
-      return codeBlocks.zipIdx.foldl (init := tr) fun acc (block, n) =>
-        acc.replace s!"§{n}" block
+      return tr.insertCodeBlocks codeBlocks
 
 /--
 Translate an interpolated string by turning it into a normal string
