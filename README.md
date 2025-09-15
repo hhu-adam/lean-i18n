@@ -71,7 +71,7 @@ at `.i18n/[lang]/[YourProject].json`
 
 ## Contribution
 
-This is merely a prototype. Contributions are very welcome!
+Contributions are very welcome!
 
 If you have a usage case for translations in Lean which isn't covered by this package,
 please open an issue explaining how you would want to use translations in Lean!
