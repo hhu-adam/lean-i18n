@@ -7,14 +7,14 @@ This package provides internationalisation ("i18n") for Lean projects.
 Add the following line to your projects `lakefile.lean`:
 
 ```lean
-require i18n from git "https://github.com/hhu-adam/lean-i18n" @ "main"
+require "hhu-adam" / i18n @ git "main"
 ```
 
 There are three options to mark strings for translation:
 
 * `t!"…"`: works like `s!"…"`.
 * `mt!"…"`: works like `m!"…"`.
-* `String.translate`: to translate a string (meta code)
+* `String.translate`: to translate a string variable
 
 Marking strings with these three options will collect untranslated strings throughout
 your project. To save them all to a template file, you have multiple options (choose one):
@@ -22,7 +22,7 @@ your project. To save them all to a template file, you have multiple options (ch
 * Call `lake exe i18n --template` inside your project (after `lake build`).
 * Place `#export_i18n` inside any Lean document. This will be executed every time that Lean
   document is built.
-* call `I18n.createTemplate` at any suitable point in your (meta-) code.
+* call `I18n.createTemplate` at any suitable point in your code.
 
 Any of these options will create a file `.i18n/en/[YourProject].pot` which you can
 translate using any a suitable editor like "Poedit" (these editors also help you merging a modified `.pot` into an existing translation).
@@ -34,11 +34,11 @@ should get your French translation of strings printed.
 
 ### Code blocks
 
-`lean-i18n` extracts code blocks from strings to be translated, and replacese them with `§n` in
-the translation key. Code blocks are defined in the markdown sense: they are marked with one or more backticks at the beginning and end.
+`lean-i18n` extracts code blocks and LaTeX snippets from strings to be translated, and replace them with `§n` in
+the translation key. Code blocks are defined in the markdown sense: they are marked with one or more backticks at the beginning and end. LaTeX-snippets are wrapped in one or more `$`.
 
 E.g. the string ``Using tactic `simp` we get `0`.`` will be turned into
-`Using tactic §0 we get §1.`. You can als change the order of the arguments in the translation, for
+`Using tactic §0 we get §1.`. You can also change the order of the arguments in the translation, for
 example: `Hier erhalten wir §1 durch das Anwenden der Taktik §0.`
 
 The PO-file will contain the raw code blocks in the "extracted comments" (lines prefixed with `#.`) to assist translation. The Json files do currently not contain the code-blocks anymore.
