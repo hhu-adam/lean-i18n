@@ -2,13 +2,22 @@
 
 This package provides internationalisation ("i18n") for Lean projects.
 
-## Usage
+## Installation
 
 Add the following line to your projects `lakefile.lean`:
 
 ```lean
 require "hhu-adam" / i18n @ git "main"
 ```
+
+or follow stable Lean versions and use
+
+```lean
+def leanVersion : String := s!"v{Lean.versionString}"
+require "hhu-adam" / i18n @ git leanVersion
+```
+
+## Usage
 
 There are three options to mark strings for translation:
 
