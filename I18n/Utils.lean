@@ -19,8 +19,7 @@ def getCurrentModule : IO Name := do
 
   match (← Lake.Manifest.load? ⟨"lake-manifest.json"⟩) with
   | none =>
-    -- TODO: should this be caught?
-    pure .anonymous
+    panic! "i18n: lake manifest could not be read."
   | some manifest =>
     -- TODO: This assumes that the `package` and the default `lean_lib`
     -- have the same name up to capitalisation.

@@ -1,5 +1,5 @@
 import Cli.Basic
-import I18n.Std.Path
+import I18n.Lean.Environment
 import I18n.Template
 
 namespace I18n
@@ -15,8 +15,9 @@ unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
   if  args.hasFlag "template" then
     let module : Import := {module := (← getCurrentModule)}
 
-    searchPathRef.set i18n_compile_time_search_path%
-    try withImportModules #[module] {} (trustLevel := 1024) fun env => do
+    initSearchPath (← findSysroot)
+    unsafe Lean.enableInitializersExecution
+    try I18n.withImportModules #[module] {} (trustLevel := 1024) fun env => do
       -- same as `createTemplate` but we're not in `CommandElabM`, but have the `env` explicitely
       let keys := untranslatedKeysExt.getState env
       let path ← createTemplateAux keys
