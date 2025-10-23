@@ -1,4 +1,5 @@
 import I18n.PO.Definition
+import Std.Internal.Parsec.Basic
 
 /-! # Parse PO-Files
 
@@ -105,7 +106,7 @@ def peek2? : Parser (Option Char) := fun it =>
 
 @[inherit_doc peek2?, inline]
 def peek2! : Parser Char := do
-  let some c ← peek2? | fail unexpectedEndOfInput
+  let some c ← peek2? | fail "unexpected end of file"
   return c
 
 /-- Parse the content of a comment excluding the initial '#'.
