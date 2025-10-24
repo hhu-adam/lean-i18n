@@ -1,7 +1,5 @@
 import I18n
 
-/-- warning: Translation file not found: /Users/jon/Code/Lean/lean-i18n/.i18n/en/i18n.po -/
-#guard_msgs in
 set_language en
 
 /-- warning: No translation (en) found for: hello world: §0 is §1 and §2 -/

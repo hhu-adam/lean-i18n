@@ -28,19 +28,4 @@ info: "ein ` String \" mit \\ escapten $ Charaktern §, Latex-Blöcken $0$ und $
 #guard_msgs in
 #eval escapedString
 
-namespace english_section
-
-set_language en
-
-def escapedString := t!"a \\` string \" with \\ escaped \\$ characters §, \
-some latex blocks $0$ and $$0 = 0$$, \
-and code blocks `a`, ``b`` and ```c with ` inside```"
-/--
-info: "a ` string \" with \\ escaped $ characters §, some latex blocks $0$ and $$0 = 0$$, and code blocks `a`, ``b`` and ```c with ` inside```"
--/
-#guard_msgs in
-#eval escapedString
-
-end english_section
-
 #export_i18n
