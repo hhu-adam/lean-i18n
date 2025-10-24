@@ -50,7 +50,25 @@ E.g. the string ``Using tactic `simp` we get `0`.`` will be turned into
 `Using tactic §0 we get §1.`. You can also change the order of the arguments in the translation, for
 example: `Hier erhalten wir §1 durch das Anwenden der Taktik §0.`
 
-The PO-file will contain the raw code blocks in the "extracted comments" (lines prefixed with `#.`) to assist translation. The Json files do currently not contain the code-blocks anymore.
+The PO-file will contain the raw code blocks in the "extracted comments" (lines prefixed with `#.`) to assist translation. The Json files do not contain the code-blocks anymore.
+
+### Escaping
+
+Escaping characters is a bit confusing as there are several actors which escape or
+unescape strings:
+
+| in `.lean` source | in `.po` file | translated string in `.lean` | printed | translatable |
+|------|----|----|----|----|
+| `$1 + 1 = 2$` | `§0` | `$1 + 1 = 2$` | `$1 + 1 = 2$` | no* |
+| ```` `use` ```` | `§0` | ```` `use` ```` | ```` `use` ```` | no* |
+| `§` | `\\§` | `§` | `§` | yes |
+| `\\` | `\\\\` | `\\` | `\` | yes |
+| `` \\` `` | `` ` `` | `` ` `` | `` ` `` | yes |
+| `\\$` | `$` | `$` | `$` | yes |
+| `\"` | `\"` | `"` | `"` | yes |
+
+*no: these blocks cannot be changed by the translation, however
+it's possible to arbitrarily reorder the placeholders `§0`, `§1`, etc. It's even possible to add such a placeholder `§0` multiple times in a translated string.
 
 ## PO Files
 

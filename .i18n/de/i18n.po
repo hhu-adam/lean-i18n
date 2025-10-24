@@ -24,3 +24,12 @@ msgstr "Test"
 #: Test.Test
 msgid "hello world: §0 is §1 and §2"
 msgstr "Hallow Welt: §0 ist §1 und §2"
+
+#. §0: $0$
+#. §1: $$0 = 0$$
+#. §2: `a`
+#. §3: ``b``
+#. §4: ```c with ` inside```
+#: Test.Test
+msgid "a ` string \" with \\\\ escaped $ characters \\§, some latex blocks §0 and §1, and code blocks §2, §3 and §4"
+msgstr "ein ` String \" mit \\\\ escapten $ Charaktern \\§, Latex-Blöcken §0 und §1, und Codeblöcken §2, §3 und §4"

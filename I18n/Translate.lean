@@ -78,19 +78,17 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
 
   s.markForTranslation
 
-  let langConfig : LanguageState ← getLanguageState
-  if langConfig.lang == langConfig.sourceLang then
-    return s
-  else
-    let (key, codeBlocks) := s.extractCodeBlocks
-    match (← getTranslations)[key]? with
-    | none =>
-      -- Print a warning that the translation has not been found
-      logWarning s!"No translation ({langConfig.lang}) found for: {key}"
-      return s
-    | some tr =>
-      -- Insert the codeblocks from the original string into the translation.
-      return tr.insertCodeBlocks codeBlocks
+  let (key, codeBlocks) := s.extractCodeBlocks
+  match (← getTranslations)[key]? with
+  | none =>
+    -- Print a warning that the translation has not been found
+    let langConfig : LanguageState ← getLanguageState
+    logWarning s!"No translation ({langConfig.lang}) found for: {key}"
+    -- nevertheless, call `insertCodeBlocks` so that escape sequences are parsed properly
+    return key.insertCodeBlocks codeBlocks
+  | some tr =>
+    -- Insert the codeblocks from the original string into the translation.
+    return tr.insertCodeBlocks codeBlocks
 
 /--
 Translate an interpolated string by turning it into a normal string
@@ -99,23 +97,16 @@ and translating that one.
 def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
     : TermElabM <| TSyntax `interpolatedStrKind := do
   let env ← getEnv
-  let langState ← getLanguageState
-  let key ← interpolatedStrKind.toString interpStr
-  let key := key.trim
-  let newInterpStr ← if langState.lang == langState.sourceLang then
-    -- We need to add the string as untranslated,
-    -- but we can just return the existing string.
-    key.markForTranslation
-    pure interpStr
-  else
-    -- Search for a translation
-    let tKey : String ← key.translate
-    -- Parse the translation
-    let newInterpStr ← match Parser.String.parseAsInterpolatedStr env tKey with
-      | .ok newInterpStr => pure newInterpStr
-      | .error err =>
-        logError s!"Could not parse translated string: {err}\n\ninput: {key}"
-        pure interpStr
+  let key := (← interpolatedStrKind.toString interpStr).trim
+
+  -- Search for a translation
+  let tKey : String ← key.translate
+  -- Parse the translation
+  let newInterpStr ← match Parser.String.parseAsInterpolatedStr env tKey with
+    | .ok stx => pure stx
+    | .error err =>
+      logError s!"Could not parse translated string: {err}\n\ninput: {key}"
+      pure interpStr
   return newInterpStr
 
 /-- A translated string. -/
