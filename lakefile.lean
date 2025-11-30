@@ -5,7 +5,7 @@ package i18n where
 
 def leanVersion : String := s!"v{Lean.versionString}"
 
-require "leanprover" / Cli @ git leanVersion
+require "leanprover" / Cli @ git "v4.24.0"
 require "leanprover-community" / batteries @ git leanVersion
 
 -- dev Dependency

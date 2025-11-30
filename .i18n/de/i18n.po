@@ -33,3 +33,14 @@ msgstr "Hallow Welt: §0 ist §1 und §2"
 #: Test.Test
 msgid "a ` string \" with \\\\ escaped $ characters \\§, some latex blocks §0 and §1, and code blocks §2, §3 and §4"
 msgstr "ein ` String \" mit \\\\ escapten $ Charaktern \\§, Latex-Blöcken §0 und §1, und Codeblöcken §2, §3 und §4"
+
+#. §0: `¬P`
+#. §1: `P`
+#. §2: `¬`
+#. §3: `\\not`
+#: Test.Test_DE
+msgid ""
+"§0 means \\\\\"it is not the case that §1\\\\\".  To enter the symbol §2,\n"
+"type §3."
+msgstr "§0 bedeuted \\\\\"es ist nicht der Fall, dass §1\\\\\".  Um das Symbol §2 einzugeben,\n"
+"schreibe §3."
