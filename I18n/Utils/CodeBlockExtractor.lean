@@ -5,15 +5,15 @@ Utils to replace code-blocks and Latex-blocks with `§n`.
 -/
 
 def insertCodeBlocks (text : String) (blocks : Array String) : String := Id.run do
-  let mut pos : String.Pos := 0
+  let mut pos : String.Pos.Raw := 0
   let mut out : String := ""
-  while !text.atEnd pos do
-    let c := text.get pos
-    let posₙ := text.next pos
+  while !pos.atEnd text do
+    let c := pos.get text
+    let posₙ := pos.next text
     if c == '\\' then
-      let cₙ := text.get posₙ
+      let cₙ := posₙ.get text
       out := out.push cₙ
-      pos := text.next posₙ
+      pos := posₙ.next text
     else if c == '§' then
       let (block, posAfter) := getCodeBlock text posₙ blocks
       out := out ++ block
@@ -23,12 +23,12 @@ def insertCodeBlocks (text : String) (blocks : Array String) : String := Id.run 
       pos := posₙ
   return  String.mk out.toList
 where
-  getCodeBlock (text : String) (pos : Pos) (blocks : Array String) : String × Pos := Id.run do
+  getCodeBlock (text : String) (pos : Pos.Raw) (blocks : Array String) : String × Pos.Raw := Id.run do
     let mut pos := pos
     let mut number := ""
-    while !text.atEnd pos && "0123456789".contains (text.get pos) do
-      number := number.push (text.get pos)
-      pos := text.next pos
+    while !pos.atEnd text && "0123456789".contains (pos.get text) do
+      number := number.push (pos.get text)
+      pos := pos.next text
     match number.toNat? with
     | some n =>
       match blocks[n]? with
@@ -56,15 +56,15 @@ Replace code blocks in the string `s` with palceholders `§n`.
   i.e. the first placeholder is `§0`.
 -/
 def extractCodeBlocks (input : String) : String × Array String := Id.run do
-  let mut pos : String.Pos := 0
+  let mut pos : String.Pos.Raw := 0
   let mut out : Array Char := Array.emptyWithCapacity input.utf8ByteSize
   let mut blocks : Array String := #[]
   let mut state : ExtractCodeBlocksState := .text
-  while !input.atEnd pos do
-    let escaped := input.get pos == '\\' && input.get (input.next pos) ∈ ['\\','`','$']
+  while !pos.atEnd input do
+    let escaped := pos.get input == '\\' && (pos.next input).get input ∈ ['\\','`','$']
     if escaped then
-      pos := input.next pos
-    let c := input.get pos
+      pos := pos.next input
+    let c := pos.get input
     match state with
     | .text =>
       if !escaped && c == '`' then
@@ -75,20 +75,20 @@ def extractCodeBlocks (input : String) : String × Array String := Id.run do
         if c == '§' || c == '\\' then
           out := out.push '\\'
         out := out.push c
-        pos := input.next pos
+        pos := pos.next input
     | .startDelimiter char length blockContent =>
       let blockContent := blockContent.push c
       if !escaped && c == char && (length <= 1 || c == '`') then
         state := .startDelimiter char (length + 1) blockContent
       else
         state := .codeBlock char length blockContent
-      pos := input.next pos
+      pos := pos.next input
     | .codeBlock delimiterChar startDelimiterLength blockContent =>
       if !escaped && c == delimiterChar then
         state := .endDelimiter delimiterChar startDelimiterLength blockContent 0
       else
         state := .codeBlock delimiterChar startDelimiterLength (blockContent.push c)
-        pos := input.next pos
+        pos := pos.next input
     | .endDelimiter delimiterChar startDelimiterLength blockContent endDelimiterLength =>
       let blockContent := blockContent.push c
       if !escaped && c == delimiterChar then
@@ -101,7 +101,7 @@ def extractCodeBlocks (input : String) : String × Array String := Id.run do
           state := .endDelimiter delimiterChar startDelimiterLength blockContent endDelimiterLength
       else
         state := .codeBlock delimiterChar startDelimiterLength blockContent
-      pos := input.next pos
+      pos := pos.next input
   let remainder :=
     match state with
     | .startDelimiter _ _ blockContent

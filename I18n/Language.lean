@@ -33,14 +33,14 @@ instance : ToString Language := ⟨Language.toString⟩
 
 @[inherit_doc Language.toString]
 def ofString (s : String) : Language :=
-  match s.split (· = '_') with
+  match s.splitToList (· = '_') with
   | [langVariant] =>
-    match langVariant.split (· = '@') with
+    match langVariant.splitToList (· = '@') with
     | [lang]          => ⟨.mkSimple lang, none, none⟩
     | [lang, variant] => ⟨.mkSimple lang, none, some <| .mkSimple variant⟩
     | _               => panic! s!"Invalid language string: {s}"
   | [lang, countryVariant] =>
-    match countryVariant.split (· = '@') with
+    match countryVariant.splitToList (· = '@') with
     | [country]          => ⟨.mkSimple lang, some <| .mkSimple country, none⟩
     | [country, variant] => ⟨.mkSimple lang, some <| .mkSimple country, some <| .mkSimple variant⟩
     | _                  => panic! s!"Invalid language string: {s}"

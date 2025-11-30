@@ -18,15 +18,15 @@ namespace POFile.Parser
 
 /-- Parse a string of po-comment references. -/
 def parseRefs (ref : String) : List (String × Option Nat) :=
-  ref.split (· = ',') |>.map (·.trim) |>.map fun s =>
-    match s.split (· = ':') with
+  ref.splitToList (· = ',') |>.map (·.trim) |>.map fun s =>
+    match s.splitToList (· = ':') with
     | [s']    => (s', none)
     | [s', n] => (s', n.toNat!)
     | _       => panic! s!"Failed to parse ref: \"{s}\"."
 
 /-- Parse a comma-separated string of PO-flags. -/
 def parseFlags (flags : String) : List String :=
-  flags.split (· = ',') |>.map (·.trim)
+  flags.splitToList (· = ',') |>.map (·.trim)
 
 /-- Internal function used by `ws_maxOneLF` -/
 partial def skipWs_maxOneLF (it : String.Iterator) (foundLF := false) : String.Iterator :=

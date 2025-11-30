@@ -31,9 +31,9 @@ Note that even the comments are sometimes parsed, depending on the second charac
 def toString (e : POEntry) : String := Id.run do
   let mut out := ""
   if let some comment := e.comment then
-    out := out.append <| "".intercalate <| (escape comment).trim.split (· == '\n') |>.map (s!"\n#  {·}")
+    out := out.append <| "".intercalate <| (escape comment).trim.splitToList (· == '\n') |>.map (s!"\n#  {·}")
   if let some extrComment := e.extrComment then
-    out := out.append <| "".intercalate <| (escape extrComment).trim.split (· == '\n') |>.map (s!"\n#. {·}")
+    out := out.append <| "".intercalate <| (escape extrComment).trim.splitToList (· == '\n') |>.map (s!"\n#. {·}")
   -- print the refs
   if let some ref := e.ref then
     -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is
@@ -51,12 +51,12 @@ def toString (e : POEntry) : String := Id.run do
   if let some prevMsgId := e.prevMsgId then
       out := out.append <|
         "\n#| msgid \"" ++
-        ("\\n\"\n#| \"".intercalate <| (escape prevMsgId).split (· == '\n')) ++ "\""
+        ("\\n\"\n#| \"".intercalate <| (escape prevMsgId).splitToList (· == '\n')) ++ "\""
   if let some msgCtx := e.msgCtxt then
     out := out.append <| s!"\nmsgctxt \"{escape msgCtx}\""
   -- print the translation
-  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgId).split (· == '\n')) ++ "\""
-  let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgStr).split (· == '\n')) ++ "\""
+  let msgId := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgId).splitToList (· == '\n')) ++ "\""
+  let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgStr).splitToList (· == '\n')) ++ "\""
   out := out.append <| "\nmsgid " ++ msgId
   out := out.append <| "\nmsgstr " ++ msgStr
   return out.trim
