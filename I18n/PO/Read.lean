@@ -29,16 +29,16 @@ def parseFlags (flags : String) : List String :=
   flags.splitToList (· = ',') |>.map (·.trim)
 
 /-- Internal function used by `ws_maxOneLF` -/
-partial def skipWs_maxOneLF (it : String.Iterator) (foundLF := false) : String.Iterator :=
-  if it.hasNext then
-    let c := it.curr
+partial def skipWs_maxOneLF (it : Sigma String.ValidPos) (foundLF := false) : Sigma String.ValidPos :=
+  if h : it.snd ≠ it.fst.endValidPos then
+    let c := it.2.get h
     if c = '\u000a' then
       if foundLF then
         it
       else
-        skipWs_maxOneLF it.next true
+        skipWs_maxOneLF ⟨it.1, (it.2.next h)⟩ true
     else if c = '\u0009' ∨ c = '\u000d' ∨ c = '\u0020' then
-      skipWs_maxOneLF it.next foundLF
+      skipWs_maxOneLF ⟨it.1, (it.2.next h)⟩ foundLF
     else
       it
   else
@@ -99,8 +99,12 @@ partial def strCore (acc : String := "") : Parser String := do
 /-- Helper function to peek at the second character coming up. -/
 @[inline]
 def peek2? : Parser (Option Char) := fun it =>
-  if it.next.hasNext then
-    .success it it.next.curr
+  if h : it.snd ≠ it.fst.endValidPos then
+    let p := it.2.next h
+    if g : p ≠ it.fst.endValidPos then
+      .success it (p.get g)
+    else
+      .success it none
   else
     .success it none
 
@@ -278,9 +282,9 @@ end Parser
 
 /-- Parse the content of a PO file. -/
 def parse (s : String) : Except String POFile :=
-  match POFile.Parser.parseFile s.mkIterator with
+  match POFile.Parser.parseFile ⟨s, s.startValidPos⟩ with
   | .success _ res => Except.ok res
-  | .error it err  => Except.error s!"offset {repr it.i.byteIdx}: {err}"
+  | .error it err  => Except.error s!"offset {repr it.2.offset.byteIdx}: {err}"
 
 end POFile
 
