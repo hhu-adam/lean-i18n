@@ -21,7 +21,7 @@ def insertCodeBlocks (text : String) (blocks : Array String) : String := Id.run 
     else
       out := out.push c
       pos := posₙ
-  return  String.mk out.toList
+  return out
 where
   getCodeBlock (text : String) (pos : Pos.Raw) (blocks : Array String) : String × Pos.Raw := Id.run do
     let mut pos := pos
@@ -95,8 +95,8 @@ def extractCodeBlocks (input : String) : String × Array String := Id.run do
         let endDelimiterLength := endDelimiterLength + 1
         if endDelimiterLength == startDelimiterLength then
           state := .text
-          out := out.append s!"§{blocks.size}".data.toArray
-          blocks := blocks.push (String.mk blockContent.toList)
+          out := out.append s!"§{blocks.size}".toList.toArray
+          blocks := blocks.push (String.ofList blockContent.toList)
         else
           state := .endDelimiter delimiterChar startDelimiterLength blockContent endDelimiterLength
       else
@@ -108,4 +108,4 @@ def extractCodeBlocks (input : String) : String × Array String := Id.run do
     | .codeBlock _ _ blockContent
     | .endDelimiter _ _ blockContent _  => blockContent
     | .text => #[]
-  return (String.mk (out ++ remainder).toList, blocks)
+  return (String.ofList (out ++ remainder).toList, blocks)
