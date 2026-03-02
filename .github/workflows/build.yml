@@ -3,6 +3,7 @@ run-name: Build package
 on:
   workflow_dispatch:
   push:
+  pull_request:
 jobs:
   build:
     runs-on: ubuntu-latest
