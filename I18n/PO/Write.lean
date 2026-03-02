@@ -31,9 +31,9 @@ Note that even the comments are sometimes parsed, depending on the second charac
 def toString (e : POEntry) : String := Id.run do
   let mut out := ""
   if let some comment := e.comment then
-    out := out.append <| "".intercalate <| (escape comment).trim.splitToList (· == '\n') |>.map (s!"\n#  {·}")
+    out := out.append <| "".intercalate <| (escape comment).trimAscii.copy.splitToList (· == '\n') |>.map (s!"\n#  {·}")
   if let some extrComment := e.extrComment then
-    out := out.append <| "".intercalate <| (escape extrComment).trim.splitToList (· == '\n') |>.map (s!"\n#. {·}")
+    out := out.append <| "".intercalate <| (escape extrComment).trimAscii.copy.splitToList (· == '\n') |>.map (s!"\n#. {·}")
   -- print the refs
   if let some ref := e.ref then
     -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is
@@ -59,7 +59,7 @@ def toString (e : POEntry) : String := Id.run do
   let msgStr := "\"" ++ ("\\n\"\n\"".intercalate <| (escape e.msgStr).splitToList (· == '\n')) ++ "\""
   out := out.append <| "\nmsgid " ++ msgId
   out := out.append <| "\nmsgstr " ++ msgStr
-  return out.trim
+  return out.trimAscii.copy
 
 instance : ToString POEntry := ⟨POEntry.toString⟩
 

@@ -18,7 +18,7 @@ namespace POFile.Parser
 
 /-- Parse a string of po-comment references. -/
 def parseRefs (ref : String) : List (String × Option Nat) :=
-  ref.splitToList (· = ',') |>.map (·.trim) |>.map fun s =>
+  ref.splitToList (· = ',') |>.map (·.trimAscii.copy) |>.map fun s =>
     match s.splitToList (· = ':') with
     | [s']    => (s', none)
     | [s', n] => (s', n.toNat!)
@@ -26,11 +26,11 @@ def parseRefs (ref : String) : List (String × Option Nat) :=
 
 /-- Parse a comma-separated string of PO-flags. -/
 def parseFlags (flags : String) : List String :=
-  flags.splitToList (· = ',') |>.map (·.trim)
+  flags.splitToList (· = ',') |>.map (·.trimAscii.copy)
 
 /-- Internal function used by `ws_maxOneLF` -/
-partial def skipWs_maxOneLF (it : Sigma String.ValidPos) (foundLF := false) : Sigma String.ValidPos :=
-  if h : it.snd ≠ it.fst.endValidPos then
+partial def skipWs_maxOneLF (it : Sigma String.Pos) (foundLF := false) : Sigma String.Pos :=
+  if h : it.snd ≠ it.fst.endPos then
     let c := it.2.get h
     if c = '\u000a' then
       if foundLF then
@@ -99,9 +99,9 @@ partial def strCore (acc : String := "") : Parser String := do
 /-- Helper function to peek at the second character coming up. -/
 @[inline]
 def peek2? : Parser (Option Char) := fun it =>
-  if h : it.snd ≠ it.fst.endValidPos then
+  if h : it.snd ≠ it.fst.endPos then
     let p := it.2.next h
-    if g : p ≠ it.fst.endValidPos then
+    if g : p ≠ it.fst.endPos then
       .success it (p.get g)
     else
       .success it none
@@ -282,7 +282,7 @@ end Parser
 
 /-- Parse the content of a PO file. -/
 def parse (s : String) : Except String POFile :=
-  match POFile.Parser.parseFile ⟨s, s.startValidPos⟩ with
+  match POFile.Parser.parseFile ⟨s, s.startPos⟩ with
   | .success _ res => Except.ok res
   | .error it err  => Except.error s!"offset {repr it.2.offset.byteIdx}: {err}"
 

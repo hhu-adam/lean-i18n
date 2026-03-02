@@ -74,7 +74,7 @@ Returns the original string on failure.
 -/
 def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m String := do
-  let s := s.trim
+  let s := s.trimAscii.copy
 
   s.markForTranslation
 
@@ -97,7 +97,7 @@ and translating that one.
 def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
     : TermElabM <| TSyntax `interpolatedStrKind := do
   let env ← getEnv
-  let key := (← interpolatedStrKind.toString interpStr).trim
+  let key := (← interpolatedStrKind.toString interpStr).trimAscii.copy
 
   -- Search for a translation
   let tKey : String ← key.translate
