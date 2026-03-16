@@ -1,5 +1,6 @@
 import I18n
 
+#guard_msgs (drop warning) in -- warning expected as no translation file exists
 set_language en
 
 /-- warning: No translation (en) found for: hello world: §0 is §1 and §2 -/

@@ -28,4 +28,14 @@ info: "ein ` String \" mit \\ escapten $ Charaktern §, Latex-Blöcken $0$ und $
 #guard_msgs in
 #eval escapedString
 
+
+def fromSTG := t!"`¬P` means \\\"it is not the case that `P`\\\".  To enter the symbol `¬`,
+type `\\not`."
+/--
+info: "`¬P` bedeuted \\\"es ist nicht der Fall, dass `P`\\\".  Um das Symbol `¬` einzugeben,\nschreibe `\\not`."
+-/
+#guard_msgs in
+#eval fromSTG
+
+
 #export_i18n
