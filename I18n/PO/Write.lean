@@ -111,7 +111,7 @@ namespace POFile
 A PO file is a series of po-entries, the first one should come from the header.
 -/
 def toString (f : POFile) : String :=
-  ("\n\n".intercalate (([f.header.toPOEntry] ++ f.entries.toList).map (fun e => s!"{e}"))) ++ "\n"
+  ("\n\n".intercalate (([f.header.toPOEntry] ++ f.entries.toList).map (s!"{·}"))) ++ "\n"
 
 instance : ToString POFile := ⟨POFile.toString⟩
 

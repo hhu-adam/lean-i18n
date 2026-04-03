@@ -18,7 +18,6 @@ def hello2 := t!"Test \n"
 #guard_msgs in
 #eval hello3
 
-
 def escapedString := t!"a \\` string \" with \\ escaped \\$ characters §, \
 some latex blocks $0$ and $$0 = 0$$, \
 and code blocks `a`, ``b`` and ```c with ` inside```"
@@ -27,5 +26,12 @@ info: "ein ` String \" mit \\ escapten $ Charaktern §, Latex-Blöcken $0$ und $
 -/
 #guard_msgs in
 #eval escapedString
+
+/-!
+Test: empty strings should not be added to the PO file as an empty `msgid` is reserved for the PO-Header
+and not allowed otherwise
+-/
+def empty := t!""
+def empty2 := t!" "
 
 #export_i18n
