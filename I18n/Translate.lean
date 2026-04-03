@@ -63,7 +63,7 @@ def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMes
 
   let entry : POEntry := {
     msgId := key
-    ref := some [(env.mainModule.toString, none)]
+    ref := some [(env.mainModule.toString, none)] -- TODO: implement line number
     extrComment := extractedComment }
   modifyEnv (untranslatedKeysExt.addEntry · entry)
 
@@ -75,6 +75,11 @@ Returns the original string on failure.
 def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m String := do
   let s := s.trimAscii.copy
+
+  -- validation: do not translate empty string
+  if s.length == 0 then
+    logInfo s!"Not adding empty translation key."
+    return ""
 
   s.markForTranslation
 
