@@ -86,9 +86,10 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
   let (key, codeBlocks) := s.extractCodeBlocks
   match (← getTranslations)[key]? with
   | none =>
-    -- Print a warning that the translation has not been found
     let langConfig : LanguageState ← getLanguageState
-    logWarning s!"No translation ({langConfig.lang}) found for: {key}"
+    unless langConfig.lang == langConfig.sourceLang do
+      -- Print a warning that the translation has not been found
+      logWarning s!"No translation ({langConfig.lang}) found for: {key}"
     -- nevertheless, call `insertCodeBlocks` so that escape sequences are parsed properly
     return key.insertCodeBlocks codeBlocks
   | some tr =>
