@@ -84,19 +84,17 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
   s.markForTranslation
 
   let (key, codeBlocks) := s.extractCodeBlocks
-  let langConfig : LanguageState ← getLanguageState
-  if langConfig.lang == langConfig.sourceLang then
-    return key.insertCodeBlocks codeBlocks
-  else
-    match (← getTranslations)[key]? with
-    | none =>
+  match (← getTranslations)[key]? with
+  | none =>
+    let langConfig : LanguageState ← getLanguageState
+    unless langConfig.lang == langConfig.sourceLang do
       -- Print a warning that the translation has not been found
       logWarning s!"No translation ({langConfig.lang}) found for: {key}"
-      -- nevertheless, call `insertCodeBlocks` so that escape sequences are parsed properly
-      return key.insertCodeBlocks codeBlocks
-    | some tr =>
-      -- Insert the codeblocks from the original string into the translation.
-      return tr.insertCodeBlocks codeBlocks
+    -- nevertheless, call `insertCodeBlocks` so that escape sequences are parsed properly
+    return key.insertCodeBlocks codeBlocks
+  | some tr =>
+    -- Insert the codeblocks from the original string into the translation.
+    return tr.insertCodeBlocks codeBlocks
 
 /--
 Translate an interpolated string by turning it into a normal string

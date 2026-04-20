@@ -31,7 +31,15 @@ info: "ein ` String \" mit \\ escapten $ Charaktern §, Latex-Blöcken $0$ und $
 Test: empty strings should not be added to the PO file as an empty `msgid` is reserved for the PO-Header
 and not allowed otherwise
 -/
+
+/-- info: Not adding empty translation key. -/
+#guard_msgs in
 def empty := t!""
+
+/-- info: Not adding empty translation key. -/
+#guard_msgs in
 def empty2 := t!" "
 
+/-- info: i18n: file created at -/
+#guard_msgs (substring := true) in
 #export_i18n
