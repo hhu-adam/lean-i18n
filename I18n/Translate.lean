@@ -1,9 +1,19 @@
-import Lean
-import I18n.EnvExtension
-import I18n.PO.Read
-import I18n.Json.Read
-import I18n.InterpolatedStr
-import I18n.Utils.CodeBlockExtractor
+module
+
+public import Lean
+public import I18n.EnvExtension
+public import I18n.PO.Read
+public import I18n.Json.Read
+public import I18n.InterpolatedStr
+public import I18n.Utils.CodeBlockExtractor
+public import I18n.Utils
+public meta import I18n.Language
+public meta import I18n.EnvExtension
+public meta import I18n.Json.Read
+public meta import I18n.PO.Read
+public meta import I18n.Utils.CodeBlockExtractor
+public meta import I18n.InterpolatedStr
+public section
 
 open Lean Elab Term System
 
@@ -19,7 +29,7 @@ If the command `set_language` is used within that document,
 namespace I18n
 
 /-- Load translations from PO-file. They can then be accessed with `I18n.getTranslations`. -/
-def loadTranslations : CoreM Unit := do
+meta def loadTranslations : CoreM Unit := do
   let langState ← getLanguageState
   let projectDir ← IO.currentDir
   let projectName ← getProjectName
@@ -51,7 +61,7 @@ elab "set_language" lang:ident : command => do
 /--
 Add a string to the set of untranslated strings
 -/
-def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
+meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m Unit := do
   let env ← getEnv
 
@@ -72,7 +82,7 @@ Add the string as untranslated, look up a translation
 and return the translated string.
 Returns the original string on failure.
 -/
-def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
+meta def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m String := do
   let s := s.trimAscii.copy
 
@@ -100,7 +110,7 @@ def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessageConte
 Translate an interpolated string by turning it into a normal string
 and translating that one.
 -/
-def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
+meta def interpolatedStrKind.translate (interpStr : TSyntax `interpolatedStrKind)
     : TermElabM <| TSyntax `interpolatedStrKind := do
   let env ← getEnv
   let key := (← interpolatedStrKind.toString interpStr).trimAscii.copy

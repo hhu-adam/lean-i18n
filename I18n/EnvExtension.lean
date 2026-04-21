@@ -1,6 +1,10 @@
-import Lean
-import I18n.PO.Definition
-import I18n.Language
+module
+
+public import Lean
+public import I18n.PO.Definition
+public import I18n.Language
+
+public section
 
 /-!
 We use three different env-extensions:
@@ -11,7 +15,7 @@ The first one is used to collect the untranslated strings to write them into a `
 The latter two contain the config (input-language, output-language, …) as well
 as the existing translations between these two languages.
 
-(Note: These latter two extenstions are separate do to issues with `Type 1` vs `Type`)
+(Note: These latter two extenstions are separate due to issues with `Type 1` vs `Type`)
 -/
 
 
@@ -23,7 +27,7 @@ namespace I18n
 Contains all extraced, yet untranslated strings.
 `t!"…"`, `tm!"…"`, and `String.translate` add the untranslated strings here.
 -/
-initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Array POEntry) ←
+meta initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Array POEntry) ←
   registerSimplePersistentEnvExtension {
     name := `i18n_keys
     asyncMode := .sync
@@ -31,7 +35,7 @@ initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Array POE
     addImportedFn := Array.flatMap id }
 
 -- debugging only
-def listTranslations [Monad m] [MonadEnv m]
+meta def listTranslations [Monad m] [MonadEnv m]
     [MonadLog m] [AddMessageContext m] [MonadOptions m] : m Unit := do
   let env ← getEnv
 

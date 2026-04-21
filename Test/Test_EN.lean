@@ -1,3 +1,5 @@
+module
+
 import I18n
 
 /-- warning: Translation file not found -/

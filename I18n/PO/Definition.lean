@@ -1,5 +1,9 @@
+module
+
 import Lean
 import I18n.Utils
+
+public section
 
 open Lean
 
@@ -77,27 +81,3 @@ structure POFile where
   header : POHeaderEntry
   /-- Each entry contains one translation into the target language. -/
   entries : Array POEntry
-
-namespace POEntry
-
-/-- Merge two PO-entries. This will append refs and flags from the second entry to the first. -/
-def mergeMetadata (entry other : POEntry) := { entry with
-  ref := match entry.ref, other.ref with
-  | none, none => none
-  | some ref₁, none => ref₁
-  | none, some ref₂ => ref₂
-  | some ref₁, some ref₂ => some (ref₁ ++ ref₂)
-  flags := match entry.flags, other.flags with
-  | none, none => none
-  | some flags₁, none => flags₁
-  | none, some flags₂ => flags₂
-  | some flags₁, some flags₂ => some (flags₁ ++ flags₂)
-  -- TODO: Other stuff too?
-}
-
-/-- Joins the metadata of multiple PO-entries. -/
-def mergeMetaDataList (a : List POEntry) : POEntry := match a with
-  | [] => default
-  | x₀ :: rest => x₀.mergeMetadata (mergeMetaDataList rest)
-
-end POEntry

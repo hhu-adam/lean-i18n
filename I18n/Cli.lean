@@ -1,6 +1,11 @@
-import Cli.Basic
-import I18n.Lean.Environment
-import I18n.Template
+module
+
+public meta import Lean.Util.Path
+public meta import Cli.Basic
+public meta import I18n.PO
+public meta import I18n.Lean.Environment
+public import I18n.Template
+public meta import I18n.PO.Read
 
 namespace I18n
 
@@ -8,7 +13,7 @@ open Lean
 
 open IO.FS IO.Process Name Core in
 /-- Implementation of `lake exe i18n` command. -/
-unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
+public meta unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
   if args.flags.size == 0 then
     IO.println <| IO.userError <| "i18n: expected at least one flag, see `lake exe i18n --help`!"
 
