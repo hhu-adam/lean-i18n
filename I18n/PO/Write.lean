@@ -1,4 +1,9 @@
-import I18n.PO.Definition
+module
+
+import I18n.Utils
+public import I18n.PO.Definition
+
+public section
 
 /-!
 This file contains the tools to turn `POEntry` objects into strings.

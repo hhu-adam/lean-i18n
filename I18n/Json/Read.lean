@@ -1,6 +1,8 @@
-import I18n.EnvExtension
--- import DateTime
+module
 
+public import I18n.EnvExtension
+
+public section
 
 open Lean System
 namespace I18n

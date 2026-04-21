@@ -1,8 +1,20 @@
+module
+
+public import Lean
 import Std.Time
 import I18n.Json
 import I18n.PO
+public meta import Std.Time.Zoned
+public meta import I18n.EnvExtension
+public meta import I18n.Json.Write
+public meta import Std.Time.Format
+public meta import I18n.PO.Write
+public meta import I18n.Utils
 
 import I18n.Translate
+public import I18n.PO.Definition
+
+public section
 
 /-! # Create PO-file
 
@@ -16,12 +28,36 @@ open Lean System
 
 namespace I18n
 
+namespace POEntry
+
+/-- Merge two PO-entries. This will append refs and flags from the second entry to the first. -/
+meta def mergeMetadata (entry other : POEntry) := { entry with
+  ref := match entry.ref, other.ref with
+  | none, none => none
+  | some ref₁, none => ref₁
+  | none, some ref₂ => ref₂
+  | some ref₁, some ref₂ => some (ref₁ ++ ref₂)
+  flags := match entry.flags, other.flags with
+  | none, none => none
+  | some flags₁, none => flags₁
+  | none, some flags₂ => flags₂
+  | some flags₁, some flags₂ => some (flags₁ ++ flags₂)
+  -- TODO: Other stuff too?
+}
+
+/-- Joins the metadata of multiple PO-entries. -/
+meta def mergeMetaDataList (a : List POEntry) : POEntry := match a with
+  | [] => default
+  | x₀ :: rest => x₀.mergeMetadata (mergeMetaDataList rest)
+
+end POEntry
+
 /--
 Write all collected untranslated strings into a template file.
 
 Note: returns the `FilePath` of the created file, simply to display a `logInfo` in `CommandElabM`.
 -/
-def createTemplateAux (keys : Array POEntry) : IO FilePath := do
+meta def createTemplateAux (keys : Array POEntry) : IO FilePath := do
   let projectName ← getProjectName
 
   -- read config instead of `languageState` because that state only
@@ -54,7 +90,7 @@ open Elab.Command in
 /--
 Write all collected untranslated strings into a template file.
 -/
-def createTemplate : CommandElabM Unit := do
+meta def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
 
   -- there might be multiple keys with identical msgId, which we need to merge

@@ -1,4 +1,8 @@
+module
+
 import I18n
+import Test.EnvExtension.File2
+import Test.EnvExtension.File3
 
 /-- warning: Translation file not found -/
 #guard_msgs (substring := true) in

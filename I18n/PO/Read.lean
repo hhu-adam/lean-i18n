@@ -1,5 +1,7 @@
-import I18n.PO.Definition
-import Std.Internal.Parsec.Basic
+module
+
+import Std.Internal.Parsec.String
+public import I18n.PO.Definition
 
 /-! # Parse PO-Files
 
@@ -291,7 +293,7 @@ end POFile
 open System
 
 /-- Read a PO file and parse it. -/
-def POFile.read (path : FilePath) : IO <| POFile := do
+public def POFile.read (path : FilePath) : IO <| POFile := do
   if ¬ (← FilePath.pathExists path) then
     panic "File does not exist!"
   let content ← IO.FS.readFile path

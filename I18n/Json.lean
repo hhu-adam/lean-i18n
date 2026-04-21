@@ -1,2 +1,4 @@
-import I18n.Json.Read
-import I18n.Json.Write
+module
+
+public import I18n.Json.Read
+public import I18n.Json.Write

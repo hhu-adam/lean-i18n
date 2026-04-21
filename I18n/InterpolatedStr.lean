@@ -1,5 +1,9 @@
-import Lean
+module
+
+public import Lean
 import I18n.Utils
+
+public section
 
 /-!
 Functions to convert an interpolated string into a string and back.

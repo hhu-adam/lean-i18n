@@ -1,4 +1,9 @@
-import Lean
+module
+
+public import Lean.Setup
+public import Lean.Environment
+
+public section
 
 namespace I18n
 

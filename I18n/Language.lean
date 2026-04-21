@@ -1,4 +1,8 @@
+module
+
 import Lean
+
+public section
 
 open Lean
 

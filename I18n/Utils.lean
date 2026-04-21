@@ -1,4 +1,8 @@
+module
+
 import Lake.Load.Manifest
+
+public section
 
 open Lean
 

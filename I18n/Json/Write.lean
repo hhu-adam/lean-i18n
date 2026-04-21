@@ -1,5 +1,9 @@
-import I18n.EnvExtension
+module
+
+public import I18n.EnvExtension
 -- import DateTime
+
+public section
 
 /-! # Create JSON-file
 

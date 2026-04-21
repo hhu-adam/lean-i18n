@@ -1,3 +1,5 @@
+module
+
 import I18n.Translate
 
 def input := r#"$a$ $b$ $c$ $d$ $e$ $f$ $g$ $h$ $i$ $j$ $k$"#

@@ -1,3 +1,5 @@
+module
+
 import I18n
 
 set_language de
