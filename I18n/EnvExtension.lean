@@ -34,17 +34,17 @@ meta initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Arra
     addEntryFn := Array.push
     addImportedFn := Array.flatMap id }
 
--- debugging only
-meta def listTranslations [Monad m] [MonadEnv m]
+/--
+Debugging only. Prints the current state of the environment extension storing all untranslated keys.
+-/
+meta def printTranslationKeys [Monad m] [MonadEnv m]
     [MonadLog m] [AddMessageContext m] [MonadOptions m] : m Unit := do
-  let env ← getEnv
+  let tt := untranslatedKeysExt.getState <| ← getEnv
+  logInfo m!"There are {tt.size} keys marked for translation: {tt.map (·.msgId)}"
 
-  let tt := (untranslatedKeysExt.getState env)
-  logInfo m!"There are {tt.size} keys for tranlation: {tt.map (·.msgId)}"
-
--- debugging only
-elab "ListTranslations" : command => do
-  listTranslations
+@[inherit_doc printTranslationKeys]
+elab "print_translation_keys" : command => do
+  printTranslationKeys
 
 /-- The language state containing desired input- and output-language.
 
