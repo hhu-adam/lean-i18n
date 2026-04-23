@@ -63,6 +63,11 @@ Add a string to the set of untranslated strings
 -/
 meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
     [MonadOptions m] (s : String) : m Unit := do
+
+  -- validation: do not translate empty string
+  if s.length == 0 then
+    return
+
   let env ← getEnv
 
   let (key, codeBlocks) := s.extractCodeBlocks
@@ -88,7 +93,6 @@ meta def _root_.String.translate [Monad m] [MonadEnv m] [MonadLog m] [AddMessage
 
   -- validation: do not translate empty string
   if s.length == 0 then
-    logInfo s!"Not adding empty translation key."
     return ""
 
   s.markForTranslation
