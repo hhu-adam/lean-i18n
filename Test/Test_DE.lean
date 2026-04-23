@@ -34,11 +34,9 @@ Test: empty strings should not be added to the PO file as an empty `msgid` is re
 and not allowed otherwise
 -/
 
-/-- info: Not adding empty translation key. -/
 #guard_msgs in
 def empty := t!""
 
-/-- info: Not adding empty translation key. -/
 #guard_msgs in
 def empty2 := t!" "
 
