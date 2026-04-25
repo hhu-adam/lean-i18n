@@ -68,26 +68,44 @@ def toString (e : POEntry) : String := Id.run do
 
 instance : ToString POEntry := ⟨POEntry.toString⟩
 
--- TODO: Parse the header entry!
-set_option linter.unusedVariables false in
-
 /-- Paring the header entry into a `POHeaderEntry`. -/
 def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
+  let lines := header.msgStr.splitOn "\n"
+  let mut pairs : List (String × String) := []
+  for line in lines do
+    let parts := line.splitOn ":"
+    if parts.length >= 2 then
+      let key := parts[0]!.trimAscii.toString
+      let value := (":".intercalate parts.tail).trimAscii.toString
+      pairs := pairs ++ [(key, value)]
+
+  let find (key : String) :=
+    (pairs.find? (fun (k,_) => k == key)).map (·.2) |>.getD ""
+
+  let findOpt (key : String) : Option String :=
+    match (pairs.find? (fun (k,_) => k == key)).map (·.2) |>.getD "" with
+    | "" => none
+    | s => some s
+
   return {
-    -- TODO: implement!
-    projectIdVersion := ""
-    reportMsgidBugsTo := ""
-    potCreationDate := ""
-    poRevisionDate := ""
-    lastTranslator := ""
-    languageTeam := ""
-    language := ""
-    contentType := ""
-    contentTransferEncoding := ""
-    pluralForms := ""
+    projectIdVersion := find "Project-Id-Version"
+    reportMsgidBugsTo := find "Report-Msgid-Bugs-To"
+    potCreationDate := find "POT-Creation-Date"
+    poRevisionDate := findOpt "PO-Revision-Date"
+    lastTranslator := find "Last-Translator"
+    languageTeam := findOpt "Language-Team"
+    language := find "Language"
+    contentType := find "Content-Type"
+    contentTransferEncoding := find "Content-Transfer-Encoding"
+    pluralForms := findOpt "Plural-Forms"
   }
 
 end POEntry
+
+#eval POEntry.toPOHeaderEntry {
+  msgId := ""
+  msgStr := "Project-Id-Version: i18n v4.22.0\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2025-09-06\nLast-Translator: Jon Eugster\nLanguage-Team: none\nLanguage: de\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit"
+}
 
 namespace POHeaderEntry
 
