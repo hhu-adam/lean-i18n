@@ -102,10 +102,12 @@ def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
 
 end POEntry
 
+-- Uncomment to verify that `toPOHeaderEntry` correctly parses all header fields.
+/-
 #eval POEntry.toPOHeaderEntry {
   msgId := ""
-  msgStr := "Project-Id-Version: i18n v4.22.0\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2025-09-06\nLast-Translator: Jon Eugster\nLanguage-Team: none\nLanguage: de\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit"
-}
+  msgStr := "Project-Id-Version: i18n v4.22.0\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2025-09-06\nLast-Translator: Jane Doe\nLanguage-Team: none\nLanguage: de\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit"
+} -/
 
 namespace POHeaderEntry
 
