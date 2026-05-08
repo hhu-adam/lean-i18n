@@ -78,36 +78,28 @@ def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
       let key := parts[0]!.trimAscii.toString
       let value := (":".intercalate parts.tail).trimAscii.toString
       pairs := pairs ++ [(key, value)]
+  return {
+    projectIdVersion := find pairs "Project-Id-Version"
+    reportMsgidBugsTo := find pairs "Report-Msgid-Bugs-To"
+    potCreationDate := find pairs "POT-Creation-Date"
+    poRevisionDate := findOpt pairs "PO-Revision-Date"
+    lastTranslator := find pairs "Last-Translator"
+    languageTeam := findOpt pairs "Language-Team"
+    language := find pairs "Language"
+    contentType := find pairs "Content-Type"
+    contentTransferEncoding := find pairs "Content-Transfer-Encoding"
+    pluralForms := findOpt pairs "Plural-Forms"
+  }
+where
+  find (pairs: List (String × String)) (key : String) :=
+    (pairs.find? (·.1 == key)).map (·.2) |>.getD ""
 
-  let find (key : String) :=
-    (pairs.find? (fun (k,_) => k == key)).map (·.2) |>.getD ""
-
-  let findOpt (key : String) : Option String :=
-    match (pairs.find? (fun (k,_) => k == key)).map (·.2) |>.getD "" with
+  findOpt (pairs: List (String × String)) (key : String) : Option String :=
+    match (pairs.find? (·.1 == key)).map (·.2) |>.getD "" with
     | "" => none
     | s => some s
 
-  return {
-    projectIdVersion := find "Project-Id-Version"
-    reportMsgidBugsTo := find "Report-Msgid-Bugs-To"
-    potCreationDate := find "POT-Creation-Date"
-    poRevisionDate := findOpt "PO-Revision-Date"
-    lastTranslator := find "Last-Translator"
-    languageTeam := findOpt "Language-Team"
-    language := find "Language"
-    contentType := find "Content-Type"
-    contentTransferEncoding := find "Content-Transfer-Encoding"
-    pluralForms := findOpt "Plural-Forms"
-  }
-
 end POEntry
-
--- Uncomment to verify that `toPOHeaderEntry` correctly parses all header fields.
-/-
-#eval POEntry.toPOHeaderEntry {
-  msgId := ""
-  msgStr := "Project-Id-Version: i18n v4.22.0\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2025-09-06\nLast-Translator: Jane Doe\nLanguage-Team: none\nLanguage: de\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit"
-} -/
 
 namespace POHeaderEntry
 
