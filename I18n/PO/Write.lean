@@ -16,8 +16,9 @@ namespace I18n
 namespace POEntry
 
 /-- A file name containing spaces is wrapped in U+2068 and U+2069. -/
-def escapeRef (s : String) : String := if
-  s.contains ' ' then s!"⁨{s}⁩" else s
+def escapeRef (s : String) : String :=
+  let s := s.replace "." "/"
+  if s.contains ' ' then s!"⁨{s}⁩" else s
 -- TODO: remove these characters when parsing a file!
 
 -- TODO: escape '"' everywhere
