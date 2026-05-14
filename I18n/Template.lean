@@ -101,7 +101,6 @@ meta def createTemplate : CommandElabM Unit := do
   let path ← createTemplateAux mergedKeys
   logInfo s!"i18n: file created at {path}"
 
-
 /-- Create a i18n-template-file now! -/
 elab "#export_i18n" : command => do
   createTemplate

@@ -16,6 +16,15 @@ msgstr "Hallo Welt"
 msgid "Test"
 msgstr "Test"
 
+#: Test.Test
+#, lean-empty, other-flag1
+msgid "deliberately empty"
+msgstr ""
+
+#: Test.Test
+msgid "empty and missing"
+msgstr ""
+
 #. §0: `a`
 #. §1: `b`
 #. §2: ```

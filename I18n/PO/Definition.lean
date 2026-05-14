@@ -13,7 +13,9 @@ namespace I18n
 Specification:
 https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html
 
-Additionally, we use one new flag: `lean-format` to mark interpolated strings.
+Additionally, we use some custom flags:
+- `lean-empty` to mark strings which are deliberately empty
+- `lean-format` to mark interpolated strings -- TODO: is this used??
 -/
 
 /--
