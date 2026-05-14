@@ -59,6 +59,16 @@ elab "set_language" lang:ident : command => do
   Elab.Command.liftCoreM <| loadTranslations
 
 /--
+Turns a module name `Package.Module.Name` into `Package/Module/Name.lean`.
+Does not check if the resulting file exists.
+
+Note: one could use `FilePath` for this. However, we want consistent separators across different
+OS and it seems in the `FilePath`-API one cannot manually specify the separator
+ -/
+private meta def toSourceFilePath (mod : Name) : String :=
+  mod.toString.replace "." "/" ++ ".lean"
+
+/--
 Add a string to the set of untranslated strings
 -/
 meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [AddMessageContext m]
@@ -78,7 +88,7 @@ meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [A
 
   let entry : POEntry := {
     msgId := key
-    ref := some [(env.mainModule.toString, none)] -- TODO: implement line number
+    ref := some [(toSourceFilePath env.mainModule, none)] -- TODO: implement line number
     extrComment := extractedComment }
   modifyEnv (untranslatedKeysExt.addEntry · entry)
 
