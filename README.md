@@ -80,6 +80,12 @@ in the [GNU gettext manual](https://www.gnu.org/software/gettext/manual/html_nod
 If your third-party software can not import a PO-file or produces a PO-file which can't be parsed (correctly) in Lean,
 please create a bug report here with a sample PO-file!
 
+### Custom Flags
+
+The following custom flags are being used:
+
+- `lean-empty`: tells the PO-to-Json export not to filter out this empty translation
+
 ## Json Files
 
 Currently the recommended workflow to retrieve i18next-compatible JSON files is the following:
