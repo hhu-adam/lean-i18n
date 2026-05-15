@@ -33,12 +33,24 @@ msgstr "übersetzter Satz"
 Note that even the comments are sometimes parsed, depending on the second character after `#`.
 ```
  -/
+
+/-
+If a #. line ends in a backslash after trimming whitespaces,
+append % so it gets not treated as a continuation
+-/
+def sanitizeExtrCommentLine (s : String) : String :=
+  let trimmed := s.trimAsciiEnd
+  if trimmed.endsWith "\\" then s ++ "%" else s
+
 def toString (e : POEntry) : String := Id.run do
   let mut out := ""
   if let some comment := e.comment then
     out := out.append <| "".intercalate <| (escape comment).trimAscii.copy.splitToList (· == '\n') |>.map (s!"\n#  {·}")
+  --print the sanitized KaTex comment
   if let some extrComment := e.extrComment then
-    out := out.append <| "".intercalate <| (escape extrComment).trimAscii.copy.splitToList (· == '\n') |>.map (s!"\n#. {·}")
+    let lines := (escape extrComment).trimAscii.copy.splitOn "\n"
+    let sanitized := lines.map sanitizeExtrCommentLine
+    out := out.append ("\n" ++ "\n".intercalate (sanitized.map (s!"#. {·}")))
   -- print the refs
   if let some ref := e.ref then
     -- TODO: One example shows `#: src/msgcmp.c:338 src/po-lex.c:699` which is

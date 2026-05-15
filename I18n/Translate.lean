@@ -68,6 +68,9 @@ OS and it seems in the `FilePath`-API one cannot manually specify the separator
 private meta def toSourceFilePath (mod : Name) : String :=
   mod.toString.replace "." "/" ++ ".lean"
 
+private meta def hasBackslashLine (s : String) : Bool :=
+  (s.splitOn "\n").any (fun line => line.trimAsciiEnd.endsWith "\\")
+
 /--
 Add a string to the set of untranslated strings
 -/
@@ -81,6 +84,11 @@ meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [A
   let env ← getEnv
 
   let (key, codeBlocks) := s.extractCodeBlocks
+
+  for block in codeBlocks do
+  if hasBackslashLine block then
+  --Print a warning if line ends in a backslash
+    logWarning m!"i18n: extracted translation comment contains a line ending in backslash."
 
   let extractedComment := match codeBlocks.size with
   | 0 => none
