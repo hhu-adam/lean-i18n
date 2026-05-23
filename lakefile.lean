@@ -3,13 +3,11 @@ open Lake DSL
 
 package i18n where
 
-def leanVersion : String := s!"v{Lean.versionString}"
-
-require "leanprover" / Cli @ git leanVersion
-require "leanprover-community" / batteries @ git leanVersion
+require "leanprover" / Cli @ git "main"
+require "leanprover-community" / batteries @ git "main"
 
 -- dev Dependency
--- require "leanprover-community" / importGraph @ git leanVersion
+-- require "leanprover-community" / importGraph @ git "main"
 
 @[default_target]
 lean_exe i18n where
