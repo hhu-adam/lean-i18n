@@ -35,8 +35,8 @@ Note that even the comments are sometimes parsed, depending on the second charac
  -/
 
 /-
-If a #. line ends in a backslash after trimming whitespaces,
-append % so it gets not treated as a continuation
+If a comment line (`#.`) ends in a backslash after trimming whitespaces,
+append `%` so it gets not treated as a continuation
 -/
 def sanitizeExtrCommentLine (s : String) : String :=
   let trimmed := s.trimAsciiEnd
