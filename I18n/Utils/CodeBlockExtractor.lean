@@ -53,13 +53,12 @@ private inductive ExtractCodeBlocksState where
 | codeBlock (delimiterChar : Char) (delimiterLength : Nat) (blockContent : Array Char)
 | endDelimiter (delimiterChar : Char) (startDelimiterLength : Nat) (blockContent : Array Char) (endDelimiterLength : Nat)
 
-private def isEscapingAt (input : String) (pos : String.Pos.Raw) : Bool := Id.run do
-  let mut curr := pos
-  while !curr.atEnd input && curr.get input == '\\' do
-    curr := curr.next input
-  if !curr.atEnd input && (curr.get input == '$' || curr.get input == '`') then
-    return true
-  return false
+private partial def isEscapingAt (input : String) (pos : String.Pos.Raw) : Bool :=
+  if pos.atEnd input then false
+  else if pos.get input == '\\' then
+    isEscapingAt input (pos.next input)
+  else
+    pos.get input == '$' || pos.get input == '`'
 
 /--
 Replace code blocks in the string `s` with palceholders `§n`.

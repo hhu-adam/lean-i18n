@@ -86,9 +86,9 @@ meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [A
   let (key, codeBlocks) := s.extractCodeBlocks
 
   for block in codeBlocks do
-  if hasBackslashLine block then
-  --Print a warning if line ends in a backslash
-    logWarning m!"i18n: extracted translation comment contains a line ending in a backslash. This can cause Poedit to incorrectly merge comment lines. Recommended fix: add a LaTeX comment character '%' after the backslash in your Lean file (e.g., '\\\\ %')."
+    if hasBackslashLine block then
+    --Print a warning if line ends in a backslash
+      logWarning m!"i18n: extracted translation comment contains a line ending in a backslash. This can cause Poedit to incorrectly merge comment lines. Recommended fix: add a LaTeX comment character '%' after the backslash in your Lean file (e.g., '\\\\ %')."
 
   let extractedComment := match codeBlocks.size with
   | 0 => none
