@@ -94,13 +94,38 @@ meta def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
 
   -- there might be multiple keys with identical msgId, which we need to merge
+  -- group entries by msgid to easily find duplicates and merge data
   let groupedEntries : Std.HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
-  let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
-    POEntry.mergeMetaDataList entries.toList)
 
-  let path ← createTemplateAux mergedKeys
+  let sortByFile := (← getOptions).getBool `i18n.sortByFile true
+
+  let sortedKeys ← if sortByFile then
+    let mut result := #[]
+    let mut seen : Std.HashMap String Unit := {}
+
+    for entry in keys do
+      let id := entry.msgId
+      unless seen.contains id do
+        seen := seen.insert id ()
+        let entries := (groupedEntries[id]?).getD #[]
+
+        -- If this ID appears multiple times while building, give a warning
+        if entries.size > 1 then
+          let refs := entries.flatMap (fun e => ((e.ref.getD []).map (·.1)).toArray)
+          --Clean up output by removing duplicate file strings
+          let uniqueRefs := refs.toList.eraseDups
+          logWarning m!"i18n: duplicate msgid '{id}' found in files: {", ".intercalate uniqueRefs}"
+
+        result := result.push (POEntry.mergeMetaDataList entries.toList)
+    pure result
+  else
+    -- Default branch: sorted alphabetically at the end
+    let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
+      POEntry.mergeMetaDataList entries.toList)
+    pure <| mergedKeys.qsort (fun e₁ e₂ => e₁.msgId < e₂.msgId)
+
+  let path ← createTemplateAux sortedKeys
   logInfo s!"i18n: file created at {path}"
 
-/-- Create a i18n-template-file now! -/
-elab "#export_i18n" : command => do
+  elab "#export_i18n" : command => do
   createTemplate

@@ -23,6 +23,12 @@ open Lean
 
 namespace I18n
 
+-- comment
+register_option i18n.sortByFile : Bool := {
+  defValue := true
+  descr    := "sort POT entries by file order and occurrence within file, and warn about duplicate msgids"
+}
+
 /--
 Contains all extraced, yet untranslated strings.
 `t!"…"`, `tm!"…"`, and `String.translate` add the untranslated strings here.
