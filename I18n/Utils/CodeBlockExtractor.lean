@@ -15,9 +15,13 @@ def insertCodeBlocks (text : String) (blocks : Array String) : String := Id.run 
     let c := pos.get text
     let posₙ := pos.next text
     if c == '\\' then
-      let cₙ := posₙ.get text
-      out := out.push cₙ
-      pos := posₙ.next text
+      if posₙ.atEnd text then
+        out := out.push '\\'
+        pos := posₙ
+      else
+        let cₙ := posₙ.get text
+        out := out.push cₙ
+        pos := posₙ.next text
     else if c == '§' then
       let (block, posAfter) := getCodeBlock text posₙ blocks
       out := out ++ block
@@ -49,6 +53,13 @@ private inductive ExtractCodeBlocksState where
 | codeBlock (delimiterChar : Char) (delimiterLength : Nat) (blockContent : Array Char)
 | endDelimiter (delimiterChar : Char) (startDelimiterLength : Nat) (blockContent : Array Char) (endDelimiterLength : Nat)
 
+private partial def isEscapingAt (input : String) (pos : String.Pos.Raw) : Bool :=
+  if pos.atEnd input then false
+  else if pos.get input == '\\' then
+    isEscapingAt input (pos.next input)
+  else
+    pos.get input == '$' || pos.get input == '`'
+
 /--
 Replace code blocks in the string `s` with palceholders `§n`.
 
@@ -65,7 +76,7 @@ def extractCodeBlocks (input : String) : String × Array String := Id.run do
   let mut blocks : Array String := #[]
   let mut state : ExtractCodeBlocksState := .text
   while !pos.atEnd input do
-    let escaped := pos.get input == '\\' && (pos.next input).get input ∈ ['\\','`','$']
+    let escaped := pos.get input == '\\' && isEscapingAt input pos
     if escaped then
       pos := pos.next input
     let c := pos.get input

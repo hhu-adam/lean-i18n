@@ -31,13 +31,13 @@ def POFile.ofJson (json : Json) : Except String POFile :=
 
 def POFile.readFromJson (path : FilePath) : IO POFile := do
   if ¬ (← FilePath.pathExists path) then
-    panic "File does not exist!"
+    throw <| IO.userError s!"File {path} does not exist!"
   let content ← IO.FS.readFile path
   match Json.parse content with
   | .ok f =>
     match POFile.ofJson f with
     | .ok f => return f
     | .error err =>
-      panic! s!"Failed to turn Json into PO file: {err}"
+      throw <| IO.userError s!"Failed to turn Json file {path} into PO file: {err}"
   | .error err =>
-    panic! s!"Failed to parse Json file: {err}"
+    throw <| IO.userError s!"Failed to parse Json file {path}: {err}"

@@ -146,7 +146,17 @@ partial def commentCore (acc : String := "") (f : Char) : Parser String := do
   else
     let c ← any
     if c = '\\' then
-      commentCore (acc.push (← escapedChar)) f
+      match (← peek?) with
+      | none => commentCore (acc.push '\\') f
+      | some cₙ =>
+        skip
+        match cₙ with
+        | '\\' => commentCore (acc.push '\\') f
+        | '"'  => commentCore (acc.push '"') f
+        | 'n'  => commentCore (acc.push '\n') f
+        | 'r'  => commentCore (acc.push '\x0d') f
+        | 't'  => commentCore (acc.push '\t') f
+        | other => commentCore (acc.push '\\' |>.push other) f
     else
       commentCore (acc.push c) f
 
@@ -283,7 +293,7 @@ def parseFile : Parser POFile := do
 end Parser
 
 /-- Parse the content of a PO file. -/
-def parse (s : String) : Except String POFile :=
+public def parse (s : String) : Except String POFile :=
   match POFile.Parser.parseFile ⟨s, s.startPos⟩ with
   | .success _ res => Except.ok res
   | .error it err  => Except.error s!"offset {repr it.2.offset.byteIdx}: {err}"
@@ -295,10 +305,10 @@ open System
 /-- Read a PO file and parse it. -/
 public def POFile.read (path : FilePath) : IO <| POFile := do
   if ¬ (← FilePath.pathExists path) then
-    panic "File does not exist!"
+    throw <| IO.userError s!"File {path} does not exist!"
   let content ← IO.FS.readFile path
   match POFile.parse content with
   | .ok f =>
     return f
   | .error err =>
-    panic! s!"Failed to parse PO file: {err}"
+    throw <| IO.userError s!"Failed to parse PO file {path}: {err}"
