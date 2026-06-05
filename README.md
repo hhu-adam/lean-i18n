@@ -37,6 +37,18 @@ Any of these options will create a file `.i18n/en/[YourProject].pot` which you c
 translate using any a suitable editor like "Poedit" (these editors also help you merging a modified `.pot` into an existing translation).
 The translated files should be saved as `.i18n/[lang]/[YourProject].po`.
 
+Template entries are sorted by `msgid` by default. This keeps generated template files
+stable and silently merges duplicate `msgid`s. If you prefer entries in source-file order,
+set `"sortByFile": true` in `.i18n/config.json`. With this option enabled, duplicate
+`msgid`s produce warnings because they can make source-order sorting ambiguous. For a
+single `#export_i18n` invocation, you can enable source-file sorting locally when
+the config leaves it disabled:
+
+```lean
+set_option i18n.sortByFile true
+#export_i18n
+```
+
 Once you have a translation present, you can use `set_language` to translate everything
 in the current document: e.g. set `set_language fr` at the top of your lean document and you
 should get your French translation of strings printed.

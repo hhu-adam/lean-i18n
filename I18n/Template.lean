@@ -52,6 +52,54 @@ meta def mergeMetaDataList (a : List POEntry) : POEntry := match a with
 
 end POEntry
 
+/-- A duplicate `msgid` found while preserving source-file order. -/
+structure DuplicateMsgIdWarning where
+  msgId : String
+  refs : List String
+  deriving Inhabited
+
+namespace DuplicateMsgIdWarning
+
+meta def toString (warning : DuplicateMsgIdWarning) : String :=
+  s!"i18n: duplicate msgid '{warning.msgId}' found in files: {", ".intercalate warning.refs}"
+
+meta def toMessageData (warning : DuplicateMsgIdWarning) : MessageData :=
+  m!"{warning.toString}"
+
+end DuplicateMsgIdWarning
+
+/--
+By default, entries are sorted by `msgid` and duplicate keys are merged silently.
+With `sortByFile`, entries keep their first source occurrence.
+Duplicate `msgid`s warn because later uses disappear into the first merged entry.
+-/
+meta def prepareTemplateEntries (keys : Array POEntry) (sortByFile : Bool) :
+    Array POEntry × Array DuplicateMsgIdWarning := Id.run do
+  let groupedEntries : Std.HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
+
+  if sortByFile then
+    let mut result := #[]
+    let mut warnings := #[]
+    let mut seen : Std.HashMap String Unit := {}
+
+    for entry in keys do
+      let id := entry.msgId
+      unless seen.contains id do
+        seen := seen.insert id ()
+        let entries := (groupedEntries[id]?).getD #[]
+
+        if entries.size > 1 then
+          let refs := entries.flatMap (fun e => ((e.ref.getD []).map (·.1)).toArray)
+          let uniqueRefs := refs.toList.eraseDups
+          warnings := warnings.push { msgId := id, refs := uniqueRefs }
+
+        result := result.push (POEntry.mergeMetaDataList entries.toList)
+    return (result, warnings)
+  else
+    let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
+      POEntry.mergeMetaDataList entries.toList)
+    return (mergedKeys.qsort (fun e₁ e₂ => e₁.msgId < e₂.msgId), #[])
+
 /--
 Write all collected untranslated strings into a template file.
 
@@ -92,40 +140,17 @@ Write all collected untranslated strings into a template file.
 -/
 meta def createTemplate : CommandElabM Unit := do
   let keys := untranslatedKeysExt.getState (← getEnv)
+  let langConfig ← readLanguageConfig
+  let opts ← getOptions
+  let sortByFile := langConfig.sortByFile || opts.getBool `i18n.sortByFile false
+  let (sortedKeys, warnings) := prepareTemplateEntries keys sortByFile
 
-  -- there might be multiple keys with identical msgId, which we need to merge
-  -- group entries by msgid to easily find duplicates and merge data
-  let groupedEntries : Std.HashMap String (Array POEntry) := keys.groupByKey (·.msgId)
-
-  let sortByFile := (← getOptions).getBool `i18n.sortByFile true
-
-  let sortedKeys ← if sortByFile then
-    let mut result := #[]
-    let mut seen : Std.HashMap String Unit := {}
-
-    for entry in keys do
-      let id := entry.msgId
-      unless seen.contains id do
-        seen := seen.insert id ()
-        let entries := (groupedEntries[id]?).getD #[]
-
-        -- If this ID appears multiple times while building, give a warning
-        if entries.size > 1 then
-          let refs := entries.flatMap (fun e => ((e.ref.getD []).map (·.1)).toArray)
-          --Clean up output by removing duplicate file strings
-          let uniqueRefs := refs.toList.eraseDups
-          logWarning m!"i18n: duplicate msgid '{id}' found in files: {", ".intercalate uniqueRefs}"
-
-        result := result.push (POEntry.mergeMetaDataList entries.toList)
-    pure result
-  else
-    -- Default branch: sorted alphabetically at the end
-    let mergedKeys : Array POEntry := groupedEntries.toArray.map (fun (_msgId, entries) =>
-      POEntry.mergeMetaDataList entries.toList)
-    pure <| mergedKeys.qsort (fun e₁ e₂ => e₁.msgId < e₂.msgId)
+  for warning in warnings do
+    logWarning warning.toMessageData
 
   let path ← createTemplateAux sortedKeys
   logInfo s!"i18n: file created at {path}"
 
-  elab "#export_i18n" : command => do
+open Elab.Command in
+elab "#export_i18n" : command => do
   createTemplate
