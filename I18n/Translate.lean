@@ -94,9 +94,10 @@ meta def _root_.String.markForTranslation [Monad m] [MonadEnv m] [MonadLog m] [A
   | 0 => none
   | _ => some <| codeBlocks.zipIdx.foldl (init := "") fun acc (block, n) => acc ++ s!"§{n}: {block}\n"
 
+  let pos ← getRefPosition
   let entry : POEntry := {
     msgId := key
-    ref := some [(toSourceFilePath env.mainModule, none)] -- TODO: implement line number
+    ref := some [(toSourceFilePath env.mainModule, some pos.line)]
     extrComment := extractedComment }
   modifyEnv (untranslatedKeysExt.addEntry · entry)
 

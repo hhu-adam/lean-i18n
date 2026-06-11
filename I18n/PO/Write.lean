@@ -101,6 +101,8 @@ def toPOHeaderEntry (header : POEntry): POHeaderEntry := Id.run do
     contentType := find pairs "Content-Type"
     contentTransferEncoding := find pairs "Content-Transfer-Encoding"
     pluralForms := findOpt pairs "Plural-Forms"
+    poeditBasepath := findOpt pairs "X-Poedit-Basepath"
+    poeditSearchPath := findOpt pairs "X-Poedit-SearchPath-0"
   }
 where
   find (pairs: List (String × String)) (key : String) :=
@@ -130,6 +132,10 @@ def toPOEntry (header : POHeaderEntry): POEntry := Id.run do
   msgStr := msgStr.append s!"\nContent-Transfer-Encoding: {header.contentTransferEncoding}"
   if let some pluralForms := header.pluralForms then
     msgStr := msgStr.append s!"\nPlural-Forms: {pluralForms}"
+  if let some poeditBasepath := header.poeditBasepath then
+    msgStr := msgStr.append s!"\nX-Poedit-Basepath: {poeditBasepath}"
+  if let some poeditSearchPath := header.poeditSearchPath then
+    msgStr := msgStr.append s!"\nX-Poedit-SearchPath-0: {poeditSearchPath}"
   return {msgId := "", msgStr := msgStr}
 
 end POHeaderEntry
