@@ -23,6 +23,11 @@ open Lean
 
 namespace I18n
 
+register_option i18n.sortByFile : Bool := {
+  defValue := false
+  descr    := "sort POT entries by file order and occurrence within file, and warn about duplicate msgids"
+}
+
 /--
 Contains all extraced, yet untranslated strings.
 `t!"…"`, `tm!"…"`, and `String.translate` add the untranslated strings here.
@@ -63,6 +68,9 @@ structure LanguageState where
   /-- Use i18next-compatible json files. Not that they contain strictly less
   information than PO files. -/
   useJson := false
+  /-- Sort template entries by their first occurrence in the source files.
+  If this is false, template entries are sorted by `msgid`. -/
+  sortByFile := false
 
 instance : Inhabited LanguageState := ⟨{}⟩ -- all fields have default options.
 
@@ -97,7 +105,8 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
       "  \"sourceLang\": \"en\",\n" ++
       -- s!"  \"lang\": \"{lang}\",\n" ++
       "  \"translationContactEmail\": \"\",\n" ++
-      "  \"useJson\": false\n" ++
+      "  \"useJson\": false,\n" ++
+      "  \"sortByFile\": false\n" ++
       "}\n"
     return {}
   else
@@ -124,6 +133,11 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
           | .ok mm => mm
           | .error _ => panic! s!"in {file}, key `useJson`: not a boolean"
         | .error _ => false -- panic! s!"{file} does not contain key `useJson`!"
+      let sortByFile := match res.getObjVal? "sortByFile" with
+        | .ok m => match m.getBool? with
+          | .ok mm => mm
+          | .error _ => panic! s!"in {file}, key `sortByFile`: not a boolean"
+        | .error _ => false
 
       let lang := match lang? with
       | some l => l
@@ -133,7 +147,8 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
         lang := lang
         sourceLang := sourceLang
         translationContactEmail := email
-        useJson := useJson }
+        useJson := useJson
+        sortByFile := sortByFile }
     | .error err =>
       panic! s!"Failed to read {file}! ({err})"
 

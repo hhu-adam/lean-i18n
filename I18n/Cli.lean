@@ -23,9 +23,12 @@ public meta unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
     initSearchPath (← findSysroot)
     unsafe Lean.enableInitializersExecution
     try I18n.withImportModules #[module] {} (trustLevel := 1024) fun env => do
-      -- same as `createTemplate` but we're not in `CommandElabM`, but have the `env` explicitely
       let keys := untranslatedKeysExt.getState env
-      let path ← createTemplateAux keys
+      let langConfig ← readLanguageConfig
+      let (sortedKeys, warnings) := prepareTemplateEntries keys langConfig.sortByFile
+      for warning in warnings do
+        IO.eprintln warning.toString
+      let path ← createTemplateAux sortedKeys
       IO.println s!"i18n: file created at {path}"
     catch err =>
       throw <| IO.userError <| s!"{err}\n" ++
