@@ -76,6 +76,8 @@ structure POHeaderEntry where
   contentType : String := "text/plain; charset=UTF-8"
   contentTransferEncoding : String := "8bit"
   pluralForms : Option String := none
+  poeditBasepath : Option String := some "../.."
+  poeditSearchPath : Option String := some "."
 
 /-- A PO-file is a document containing translations of strings into a different language. -/
 structure POFile where

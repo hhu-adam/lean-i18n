@@ -12,7 +12,9 @@ info: { projectIdVersion := "i18n v4.22.0",
   language := "de",
   contentType := "text/plain; charset=UTF-8",
   contentTransferEncoding := "8bit",
-  pluralForms := none }
+  pluralForms := none,
+  poeditBasepath := none,
+  poeditSearchPath := none }
 -/
 #guard_msgs in
 #eval POEntry.toPOHeaderEntry {
