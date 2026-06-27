@@ -10,13 +10,16 @@ require "leanprover-community" / batteries @ git "main"
 -- require "leanprover-community" / importGraph @ git "main"
 
 @[default_target]
-lean_exe i18n where
-  root := `Main
-  -- Apparently it's needed!
-  supportInterpreter := true
+lean_lib I18n where
+
+lean_lib I18nCli where
+  globs := #[.submodules `I18nCli]
 
 @[default_target]
-lean_lib I18n where
+lean_exe i18n where
+  root := `I18nCli.Main
+  -- Apparently it's needed!
+  supportInterpreter := true
 
 @[test_driver]
 lean_lib Test where
