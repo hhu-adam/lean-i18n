@@ -1,11 +1,6 @@
 module
 
 public import Lean
-public import I18n.EnvExtension
-public import I18n.PO.Read
-public import I18n.Json.Read
-public import I18n.InterpolatedStr
-public import I18n.Utils.CodeBlockExtractor
 public import I18n.Utils
 public meta import I18n.Language
 public meta import I18n.EnvExtension

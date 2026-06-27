@@ -3,13 +3,13 @@ module
 public meta import Lean.Util.Path
 public meta import Cli.Basic
 public meta import I18n.PO
-public meta import I18n.Lean.Environment
+public meta import I18nCli.Lean.Environment
 public import I18n.Template
 public meta import I18n.PO.Read
 
 namespace I18n
 
-open Lean
+open Lean Cli
 
 open IO.FS IO.Process Name Core in
 /-- Implementation of `lake exe i18n` command. -/
@@ -46,3 +46,15 @@ public meta unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
       po.saveAsJson outFile
       IO.println s!"i18n: exported {file} to {outFile}."
   return 0
+
+/-- Setting up command line options and help text for `lake exe graph`. -/
+public meta unsafe def i18n : Cmd := `[Cli|
+  i18n VIA i18nCLI; ["0.1.0"]
+  "I18n CLI
+  Tool for internationalisation of Lean projects.
+  "
+
+  FLAGS:
+    t, "template";    "Create an output template `.i18n/en/Game.pot`."
+    e, "export-json"; "Exports all `.po` files in `.i18n/` to i18next-compatible `.json` format."
+]
