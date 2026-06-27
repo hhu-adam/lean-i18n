@@ -7,7 +7,7 @@ require "leanprover" / Cli @ git "main"
 require "leanprover-community" / batteries @ git "main"
 
 -- dev Dependency
-require "leanprover-community" / importGraph @ git "main"
+-- require "leanprover-community" / importGraph @ git "main"
 
 @[default_target]
 lean_exe i18n where
@@ -17,9 +17,6 @@ lean_exe i18n where
 
 @[default_target]
 lean_lib I18n where
-
-@[default_target]
-lean_lib Main where
 
 @[test_driver]
 lean_lib Test where
