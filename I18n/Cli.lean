@@ -37,6 +37,8 @@ public meta unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
 
   if args.hasFlag "export-json" then
     let files ← findFilesWithExtension ".i18n" "po"
+    if files.isEmpty then
+      IO.println "i18n: not found any PO files."
 
     for file in files do
       let outFile := file.withExtension "json"
