@@ -4,7 +4,7 @@ public meta import Lean.Util.Path
 public meta import Cli.Basic
 public meta import I18n.PO
 public meta import I18nCli.Lean.Environment
-public import I18n.Template
+public meta import I18n.Template
 public meta import I18n.PO.Read
 
 namespace I18n
@@ -23,12 +23,16 @@ public meta unsafe def i18nCLI (args : Cli.Parsed) : IO UInt32 := do
     initSearchPath (← findSysroot)
     unsafe Lean.enableInitializersExecution
     try I18n.withImportModules #[module] {} (trustLevel := 1024) fun env => do
-      let keys := untranslatedKeysExt.getState env
-      let langConfig ← readLanguageConfig
+      let project ← getRootProjectContext
+      let scope := (getTemplateScopeForPackage env project.id).getD .packageOnly
+      let keys := match scope with
+        | .packageOnly => getUntranslatedKeysForPackage env project.id
+        | .bundle => untranslatedKeysExt.getState env
+      let langConfig ← readLanguageConfigAt project.dir
       let (sortedKeys, warnings) := prepareTemplateEntries keys langConfig.sortByFile
       for warning in warnings do
         IO.eprintln warning.toString
-      let path ← createTemplateAux sortedKeys
+      let path ← createTemplateAuxFor project sortedKeys
       IO.println s!"i18n: file created at {path}"
     catch err =>
       throw <| IO.userError <| s!"{err}\n" ++

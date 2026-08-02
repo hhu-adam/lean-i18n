@@ -3,6 +3,7 @@ module
 public import Lean
 public import I18n.PO.Definition
 public import I18n.Language
+public import I18n.Project
 
 public section
 
@@ -38,6 +39,24 @@ meta initialize untranslatedKeysExt : SimplePersistentEnvExtension POEntry (Arra
     asyncMode := .sync
     addEntryFn := Array.push
     addImportedFn := Array.flatMap id }
+
+/-- Return untranslated entries owned by one Lake package. -/
+meta def getUntranslatedKeysForPackage (env : Environment) (packageId : PkgId) : Array POEntry :=
+    Id.run do
+  let mut keys := #[]
+
+  for moduleName in env.header.moduleNames do
+    if let some idx := env.getModuleIdx? moduleName then
+      if env.getModulePackageByIdx? idx == some packageId then
+        keys := keys ++ untranslatedKeysExt.getModuleEntries env idx
+
+  let includeLocal := match env.getModulePackage? with
+    | some currentPackage => currentPackage == packageId
+    | none => true
+  if includeLocal then
+    keys := keys ++ (untranslatedKeysExt.getEntries env).toArray
+
+  return keys
 
 /--
 Debugging only. Prints the current state of the environment extension storing all untranslated keys.
@@ -95,20 +114,24 @@ package. Might be replaced if setting custom options in the lakefile ever gets i
 Note: The target language is not in the config file as in the current setup this is
 provided through the `Language` command.
 -/
-def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := do
-  let projectDir ← IO.currentDir
+def readLanguageConfigAt (projectDir : System.FilePath) (lang? : Option Language := none)
+    (createIfMissing := true) : IO LanguageState := do
   let path := projectDir / ".i18n"
-  IO.FS.createDirAll path
   let file := path / "config.json"
   if ¬ (← System.FilePath.pathExists file) then
-    IO.FS.writeFile file <| "{\n" ++
-      "  \"sourceLang\": \"en\",\n" ++
-      -- s!"  \"lang\": \"{lang}\",\n" ++
-      "  \"translationContactEmail\": \"\",\n" ++
-      "  \"useJson\": false,\n" ++
-      "  \"sortByFile\": false\n" ++
-      "}\n"
-    return {}
+    if createIfMissing then
+      IO.FS.createDirAll path
+      IO.FS.writeFile file <| "{\n" ++
+        "  \"sourceLang\": \"en\",\n" ++
+        -- s!"  \"lang\": \"{lang}\",\n" ++
+        "  \"translationContactEmail\": \"\",\n" ++
+        "  \"useJson\": false,\n" ++
+        "  \"sortByFile\": false\n" ++
+        "}\n"
+    let state : LanguageState := {}
+    return match lang? with
+      | some lang => {state with lang}
+      | none => state
   else
     let content ← IO.FS.readFile file
     match Json.parse content with
@@ -152,6 +175,9 @@ def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := d
     | .error err =>
       panic! s!"Failed to read {file}! ({err})"
 
+def readLanguageConfig (lang? : Option Language := none) : IO LanguageState := do
+  readLanguageConfigAt (← IO.currentDir) lang?
+
 /--
 This extension holds the loaded translations `sourceLang` to `lang`.
 It is up to the developer to keep it in sync with the `languageExt`.
@@ -161,7 +187,11 @@ initialize translationExt : SimplePersistentEnvExtension (String × String) (Std
       name := `i18n_translations
       asyncMode := .sync
       addEntryFn := fun hm (x : String × String) => hm.insert x.1 x.2
-      addImportedFn := fun arr => Std.HashMap.ofList (arr.flatMap id).toList }
+      /-
+      Translation maps are compile-time inputs for the current module. Importing them allows an unrelated
+      dependency translation with the same msgid to leak into this package.
+      -/
+      addImportedFn := fun _ => {} }
 
 /--
 Get the translations from the environment. It is a `HashMap String String`
