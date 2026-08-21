@@ -3,8 +3,8 @@ open Lake DSL
 
 package i18n where
 
-require "leanprover" / Cli @ git "main"
-require "leanprover-community" / batteries @ git "main"
+require "leanprover" / Cli @ git "v4.33.0"
+require "leanprover-community" / batteries @ git "v4.33.0"
 
 -- dev Dependency
 -- require "leanprover-community" / importGraph @ git "main"
