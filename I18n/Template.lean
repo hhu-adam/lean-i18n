@@ -28,6 +28,47 @@ open Lean System
 
 namespace I18n
 
+/-- Which imported translation keys should be written to a template -/
+inductive TemplateScope where
+  /-- Export only entries owned by the current Lake package -/
+  | packageOnly
+  /-- Export all entries visible through imports -/
+  | bundle
+deriving Inhabited, BEq, Repr
+
+/-- Records an explicit template scope so the CLI can reproduce embedded export behaviour -/
+meta initialize templateScopeExt : SimplePersistentEnvExtension TemplateScope (Option TemplateScope) ←
+  registerSimplePersistentEnvExtension {
+    name := `i18n_template_scope
+    asyncMode := .sync
+    addEntryFn := fun _ scope => some scope
+    addImportedFn := fun _ => none }
+
+private meta def mergeTemplateScope (current : Option TemplateScope) (next : TemplateScope) :
+    Option TemplateScope := match current, next with
+  | some .bundle, _ | _, .bundle => some .bundle
+  | _, .packageOnly => some .packageOnly
+
+/-- Return the explicit template mode recorded by modules in one package. -/
+meta def getTemplateScopeForPackage (env : Environment) (packageId : PkgId) :
+    Option TemplateScope := Id.run do
+  let mut scope := none
+
+  for moduleName in env.header.moduleNames do
+    if let some idx := env.getModuleIdx? moduleName then
+      if env.getModulePackageByIdx? idx == some packageId then
+        for entry in templateScopeExt.getModuleEntries env idx do
+          scope := mergeTemplateScope scope entry
+
+  let includeLocal := match env.getModulePackage? with
+    | some currentPackage => currentPackage == packageId
+    | none => true
+  if includeLocal then
+    for entry in templateScopeExt.getEntries env do
+      scope := mergeTemplateScope scope entry
+
+  return scope
+
 namespace POEntry
 
 /-- Merge two PO-entries. This will append refs and flags from the second entry to the first. -/
@@ -105,22 +146,20 @@ Write all collected untranslated strings into a template file.
 
 Note: returns the `FilePath` of the created file, simply to display a `logInfo` in `CommandElabM`.
 -/
-meta def createTemplateAux (keys : Array POEntry) : IO FilePath := do
-  let projectName ← getProjectName
-
+meta def createTemplateAuxFor (project : ProjectContext) (keys : Array POEntry) : IO FilePath := do
   -- read config instead of `languageState` because that state only
   -- gets initialised if `set_language` is used in the document.
-  let langConfig ← readLanguageConfig
+  let langConfig ← readLanguageConfigAt project.dir (createIfMissing := project.isRoot)
 
   let sourceLang := langConfig.sourceLang.toString
   let ending := if langConfig.useJson then "json" else "pot"
-  let fileName := s!"{projectName}.{ending}"
-  let path := (← IO.currentDir) / ".i18n" / sourceLang
+  let fileName := s!"{project.name}.{ending}"
+  let path := project.dir / ".i18n" / sourceLang
   IO.FS.createDirAll path
 
   let poFile : POFile := {
     header := {
-      projectIdVersion := s!"{projectName} v{Lean.versionString}"
+      projectIdVersion := s!"{project.name} v{Lean.versionString}"
       reportMsgidBugsTo := langConfig.translationContactEmail
       potCreationDate := (← Std.Time.PlainDate.now) |>.format "uuuu-MM-dd"
       language := sourceLang }
@@ -133,14 +172,23 @@ meta def createTemplateAux (keys : Array POEntry) : IO FilePath := do
 
   return (path / fileName)
 
-open Elab.Command in
+/-- Write a template for the root package. -/
+meta def createTemplateAux (keys : Array POEntry) : IO FilePath := do
+  createTemplateAuxFor (← getRootProjectContext) keys
 
-/--
-Write all collected untranslated strings into a template file.
--/
-meta def createTemplate : CommandElabM Unit := do
-  let keys := untranslatedKeysExt.getState (← getEnv)
-  let langConfig ← readLanguageConfig
+open Elab.Command
+
+private meta def createTemplateWithScope (scope : TemplateScope) : CommandElabM Unit := do
+  let env ← getEnv
+  let project ← getCurrentProjectContext env
+  modifyEnv (templateScopeExt.addEntry · scope)
+  unless project.isRoot do
+    return
+
+  let keys := match scope with
+    | .packageOnly => getUntranslatedKeysForPackage env project.id
+    | .bundle => untranslatedKeysExt.getState env
+  let langConfig ← readLanguageConfigAt project.dir
   let opts ← getOptions
   let sortByFile := langConfig.sortByFile || opts.getBool `i18n.sortByFile false
   let (sortedKeys, warnings) := prepareTemplateEntries keys sortByFile
@@ -148,9 +196,19 @@ meta def createTemplate : CommandElabM Unit := do
   for warning in warnings do
     logWarning warning.toMessageData
 
-  let path ← createTemplateAux sortedKeys
+  let path ← createTemplateAuxFor project sortedKeys
   logInfo s!"i18n: file created at {path}"
+
+/--
+Write all untranslated strings into one template file (so Lean4Game does not break).
+-/
+meta def createTemplate : CommandElabM Unit := do
+  createTemplateWithScope .bundle
+
+/-- For a package-owned catalog & write only the current packages untranslated strings -/
+meta def createPackageTemplate : CommandElabM Unit := do
+  createTemplateWithScope .packageOnly
 
 open Elab.Command in
 elab "#export_i18n" : command => do
-  createTemplate
+  createPackageTemplate

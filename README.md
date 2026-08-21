@@ -31,11 +31,21 @@ your project. To save them all to a template file, you have multiple options (ch
 * Call `lake exe i18n --template` inside your project (after `lake build`).
 * Place `#export_i18n` inside any Lean document. This will be executed every time that Lean
   document is built.
-* call `I18n.createTemplate` at any suitable point in your code.
+* call `I18n.createPackageTemplate` at any suitable point in your code.
 
 Any of these options will create a file `.i18n/en/[YourProject].pot` which you can
 translate using any a suitable editor like "Poedit" (these editors also help you merging a modified `.pot` into an existing translation).
 The translated files should be saved as `.i18n/[lang]/[YourProject].po`.
+
+### Dependent packages
+
+Translation catalogs are owned by Lake packages. Importing another translated package does not
+copy that dependency's strings into the current package's template, and translations with the same
+`msgid` in two packages do not overwrite each other. Each package keeps its own configuration and
+catalogs in its package-local `.i18n` directory.
+
+`lake exe i18n --template`, `#export_i18n`, and `I18n.createPackageTemplate` create a template for
+the current package only.
 
 Template entries are sorted by `msgid` by default. This keeps generated template files
 stable and silently merges duplicate `msgid`s. If you prefer entries in source-file order,

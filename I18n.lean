@@ -1,5 +1,6 @@
 module
 
+public import I18n.Project
 public import I18n.EnvExtension
 public import I18n.InterpolatedStr
 public import I18n.Json

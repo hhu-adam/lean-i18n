@@ -26,11 +26,10 @@ namespace I18n
 /-- Load translations from PO-file. They can then be accessed with `I18n.getTranslations`. -/
 meta def loadTranslations : CoreM Unit := do
   let langState ← getLanguageState
-  let projectDir ← IO.currentDir
-  let projectName ← getProjectName
+  let project ← getCurrentProjectContext (← getEnv)
 
   let ending := if langState.useJson then "json" else "po"
-  let file := projectDir / ".i18n" / s!"{langState.lang}" / s!"{projectName.toString}.{ending}"
+  let file := project.dir / ".i18n" / s!"{langState.lang}" / s!"{project.name.toString}.{ending}"
   if ¬ (← FilePath.pathExists file) then
     logWarning s!"Translation file not found: {file}"
     return ()
@@ -47,8 +46,15 @@ meta def loadTranslations : CoreM Unit := do
 elab "set_language" lang:ident : command => do
   -- Load the language state
   let language : Language := Language.ofString lang.getId.toString
-  let langState ← readLanguageConfig language
+  let project ← getCurrentProjectContext (← getEnv)
+  let langState ← readLanguageConfigAt project.dir (some language) project.isRoot
   setLanguageState {langState with lang := language}
+
+  /-
+  Do not keep translations from an earlier `set_language` command in the same module when the new
+  catalog is partial or missing
+  -/
+  modifyEnv (translationExt.setState · {})
 
   -- Load in the translation for that language
   Elab.Command.liftCoreM <| loadTranslations
